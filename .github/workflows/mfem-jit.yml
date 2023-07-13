@@ -76,8 +76,9 @@ jobs:
         wget --no-verbose https://mfem.github.io/tpls/${{ env.METIS_TGZ }}
         rm -rf ${{ env.METIS_DIR }}
         tar -xzf ${{ env.METIS_TGZ }}
+        install_prefix="$(pwd)/metis-5.0"
         cd ${{ env.METIS_DIR }}
-        make config shared=1 prefix=$(pwd)
+        make config shared=1 prefix=${install_prefix}
         make install -j3
       shell: bash
 
