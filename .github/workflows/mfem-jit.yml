@@ -179,7 +179,7 @@ jobs:
       run: |
         ln -s ../../hypre/install/lib/libHYPRE.* .
         ln -s ../../metis-5.0/lib/libmetis.* .
-        ln -la
+        ls -la
         make ex1p
         mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
