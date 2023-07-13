@@ -221,7 +221,7 @@ LIBUNWIND_LIB = $(if $(NOTMAC),-lunwind -ldl,)
 HYPRE_DIR = @MFEM_DIR@/../hypre/src/hypre
 HYPRE_OPT = -I$(HYPRE_DIR)/include
 HYPRE_LIB = -L$(HYPRE_DIR)/lib -lHYPRE
-ifeq (YES,$(MFEM_SHARED))
+ifeq (YES,$(SHARED))
 	HYPRE_LIB += $(XLINKER)-rpath,$(abspath $(HYPRE_DIR))/lib
 endif
 ifeq (YES,$(MFEM_USE_CUDA))
@@ -255,7 +255,7 @@ else
    METIS_LIB = -L$(METIS_DIR)/lib -lparmetis -lmetis
    MFEM_USE_METIS_5 = YES
 endif
-ifeq (YES,$(MFEM_SHARED))
+ifeq (YES,$(SHARED))
 	METIS_LIB += $(XLINKER)-rpath,$(abspath $(METIS_DIR))/lib
 endif
 
