@@ -130,7 +130,7 @@ jobs:
       #if: matrix.build-system == 'make'
       if: matrix.mpi == 'seq'
       working-directory: mfem/examples
-      run:
+      run: |
         ./ex1 -pa -no-vis # will create the JIT cache: archive + shared
         ./ex1 -pa -no-vis # will re-use the caches
         rm libmjit.[^a]*  # remove the JIT shared lib, but keep the archive
@@ -140,7 +140,7 @@ jobs:
       #if: matrix.build-system == 'make'
       if: matrix.mpi == 'par'
       working-directory: mfem/examples
-      run:
+      run: |
         mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
         rm libmjit.[^a]*
