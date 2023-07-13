@@ -76,7 +76,6 @@ jobs:
     - name: METIS install
       if: matrix.mpi == 'par' && steps.metis-cache.outputs.cache-hit != 'true'
       run: |
-        pwd
         wget --no-verbose https://mfem.github.io/tpls/${{ env.METIS_TGZ }}
         rm -rf ${{ env.METIS_DIR }}
         tar -xzf ${{ env.METIS_TGZ }}
