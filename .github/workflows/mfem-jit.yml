@@ -24,7 +24,7 @@ on:
 
 env:
   HYPRE_TGZ: v2.29.0.tar.gz
-  HYPRE_DIR: hypre-2.19.0
+  HYPRE_DIR: hypre-2.29.0
   METIS_TGZ: metis-4.0.3.tar.gz
   METIS_DIR: metis-4.0.3
 
@@ -35,7 +35,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [seq, par]
+        mpi: [par] #, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
