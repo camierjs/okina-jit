@@ -140,6 +140,7 @@ jobs:
         library-only: false
         config-options:
           MFEM_USE_JIT=YES
+          MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
 
     - name: MFEM info (Make)
