@@ -137,7 +137,7 @@ jobs:
         hypre-dir: ${{ env.HYPRE_DIR }}
         metis-dir: ${{ env.METIS_DIR }}
         mfem-dir: mfem
-        library-only: false
+        library-only: true
         config-options:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
