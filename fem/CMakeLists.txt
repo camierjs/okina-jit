@@ -10,60 +10,50 @@
 # CONTRIBUTING.md for details.
 
 set(JITS
-    bilininteg_diffusion_pa.cpp
-    bilininteg_mass_pa.cpp
-    tmop/tmop_pa.cpp
-    tmop/tmop_pa_da3.cpp
-    tmop/tmop_pa_h2d.cpp
-    tmop/tmop_pa_h2d_c0.cpp
-    tmop/tmop_pa_h2m.cpp
-    tmop/tmop_pa_h2m_c0.cpp
-    tmop/tmop_pa_h2s.cpp
-    tmop/tmop_pa_h2s_c0.cpp
-    tmop/tmop_pa_h3d.cpp
-    tmop/tmop_pa_h3d_c0.cpp
-    tmop/tmop_pa_h3m.cpp
-    tmop/tmop_pa_h3m_c0.cpp
-    tmop/tmop_pa_h3s.cpp
-    tmop/tmop_pa_h3s_c0.cpp
-    tmop/tmop_pa_jp2.cpp
-    tmop/tmop_pa_jp3.cpp
-    tmop/tmop_pa_p2.cpp
-    tmop/tmop_pa_p2_c0.cpp
-    tmop/tmop_pa_p3.cpp
-    tmop/tmop_pa_p3_c0.cpp
-    tmop/tmop_pa_tc2.cpp
-    tmop/tmop_pa_tc3.cpp
-    tmop/tmop_pa_w2.cpp
-    tmop/tmop_pa_w2_c0.cpp
-    tmop/tmop_pa_w3.cpp
-    tmop/tmop_pa_w3_c0.cpp
-    )
+  integ/bilininteg_diffusion_kernels.cpp
+  integ/bilininteg_mass_kernels.cpp
+  )
 
 set(SRCS
   bilinearform.cpp
   bilinearform_ext.cpp
   bilininteg.cpp
-  bilininteg_br2.cpp
-  bilininteg_convection_mf.cpp
-  bilininteg_convection_pa.cpp
-  bilininteg_convection_ea.cpp
-  bilininteg_dgtrace_pa.cpp
-  bilininteg_dgtrace_ea.cpp
-  bilininteg_diffusion_mf.cpp
-  bilininteg_diffusion_ea.cpp
-  bilininteg_divergence.cpp
-  bilininteg_hcurl.cpp
-  bilininteg_hdiv.cpp
-  bilininteg_vectorfe.cpp
-  bilininteg_gradient.cpp
-  bilininteg_mass_mf.cpp
-  bilininteg_mass_ea.cpp
-  bilininteg_transpose_ea.cpp
-  bilininteg_vecdiffusion.cpp
-  bilininteg_vecdiffusion_mf.cpp
-  bilininteg_vecmass.cpp
-  bilininteg_vecmass_mf.cpp
+  integ/bilininteg_br2.cpp
+  integ/bilininteg_convection_mf.cpp
+  integ/bilininteg_convection_pa.cpp
+  integ/bilininteg_convection_ea.cpp
+  integ/bilininteg_curlcurl_pa.cpp
+  integ/bilininteg_dgtrace_pa.cpp
+  integ/bilininteg_dgtrace_ea.cpp
+  integ/bilininteg_diffusion_mf.cpp
+  integ/bilininteg_diffusion_pa.cpp
+  integ/bilininteg_diffusion_ea.cpp
+  integ/bilininteg_divdiv_pa.cpp
+  integ/bilininteg_gradient_pa.cpp
+  integ/bilininteg_interp_pa.cpp
+  integ/bilininteg_mass_mf.cpp
+  integ/bilininteg_mass_pa.cpp
+  integ/bilininteg_mass_ea.cpp
+  integ/bilininteg_mixedcurl_pa.cpp
+  integ/bilininteg_mixedvecgrad_pa.cpp
+  integ/bilininteg_transpose_ea.cpp
+  integ/bilininteg_vecdiffusion_mf.cpp
+  integ/bilininteg_vecdiffusion_pa.cpp
+  integ/bilininteg_vecdiv_pa.cpp
+  integ/bilininteg_vecmass_mf.cpp
+  integ/bilininteg_vecmass_pa.cpp
+  integ/bilininteg_vectorfediv_pa.cpp
+  integ/bilininteg_vectorfemass_pa.cpp
+  integ/bilininteg_hcurl_kernels.cpp
+  integ/bilininteg_hdiv_kernels.cpp
+  integ/bilininteg_hcurlhdiv_kernels.cpp
+  integ/lininteg_boundary.cpp
+  integ/lininteg_boundary_flux.cpp
+  integ/lininteg_domain.cpp
+  integ/lininteg_domain_grad.cpp
+  integ/lininteg_domain_vectorfe.cpp
+  integ/nonlininteg_vecconvection_pa.cpp
+  integ/nonlininteg_vecconvection_mf.cpp
   coefficient.cpp
   complex_fem.cpp
   convergence.cpp
@@ -73,6 +63,7 @@ set(SRCS
   eltrans.cpp
   estimators.cpp
   fe.cpp
+  fe/face_map_utils.cpp
   fe/fe_base.cpp
   fe/fe_fixed_order.cpp
   fe/fe_h1.cpp
@@ -102,9 +93,6 @@ set(SRCS
   linearform.cpp
   linearform_ext.cpp
   lininteg.cpp
-  lininteg_boundary.cpp
-  lininteg_domain.cpp
-  lininteg_domain_grad.cpp
   lor/lor.cpp
   lor/lor_ads.cpp
   lor/lor_ams.cpp
@@ -117,8 +105,6 @@ set(SRCS
   nonlinearform_ext.cpp
   nonlininteg.cpp
   fespacehierarchy.cpp
-  nonlininteg_vectorconvection.cpp
-  nonlininteg_vectorconvection_mf.cpp
   qfunction.cpp
   qinterp/det.cpp
   qinterp/eval_by_nodes.cpp
@@ -133,6 +119,32 @@ set(SRCS
   restriction.cpp
   staticcond.cpp
   tmop.cpp
+  tmop/tmop_pa.cpp
+  tmop/tmop_pa_da3.cpp
+  tmop/tmop_pa_h2d.cpp
+  tmop/tmop_pa_h2d_c0.cpp
+  tmop/tmop_pa_h2m.cpp
+  tmop/tmop_pa_h2m_c0.cpp
+  tmop/tmop_pa_h2s.cpp
+  tmop/tmop_pa_h2s_c0.cpp
+  tmop/tmop_pa_h3d.cpp
+  tmop/tmop_pa_h3d_c0.cpp
+  tmop/tmop_pa_h3m.cpp
+  tmop/tmop_pa_h3m_c0.cpp
+  tmop/tmop_pa_h3s.cpp
+  tmop/tmop_pa_h3s_c0.cpp
+  tmop/tmop_pa_jp2.cpp
+  tmop/tmop_pa_jp3.cpp
+  tmop/tmop_pa_p2.cpp
+  tmop/tmop_pa_p2_c0.cpp
+  tmop/tmop_pa_p3.cpp
+  tmop/tmop_pa_p3_c0.cpp
+  tmop/tmop_pa_tc2.cpp
+  tmop/tmop_pa_tc3.cpp
+  tmop/tmop_pa_w2.cpp
+  tmop/tmop_pa_w2_c0.cpp
+  tmop/tmop_pa_w3.cpp
+  tmop/tmop_pa_w3_c0.cpp
   tmop_tools.cpp
   tmop_amr.cpp
   gslib.cpp
@@ -143,7 +155,11 @@ set(HDRS
   bilinearform.hpp
   bilinearform_ext.hpp
   bilininteg.hpp
-  bilininteg_mass_pa.hpp
+  integ/bilininteg_diffusion_kernels.hpp
+  integ/bilininteg_hcurl_kernels.hpp
+  integ/bilininteg_hdiv_kernels.hpp
+  integ/bilininteg_hcurlhdiv_kernels.hpp
+  integ/bilininteg_mass_kernels.hpp
   coefficient.hpp
   complex_fem.hpp
   convergence.hpp
@@ -154,6 +170,7 @@ set(HDRS
   eltrans.hpp
   estimators.hpp
   fe.hpp
+  fe/face_map_utils.hpp
   fe/fe_base.hpp
   fe/fe_fixed_order.hpp
   fe/fe_h1.hpp

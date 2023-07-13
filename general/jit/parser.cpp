@@ -444,12 +444,12 @@ struct Parser
 
       // these settings are global to MFEM
       const char *cxx = "" MFEM_CXX;
-      const char *libs = "" MFEM_EXT_LIBS;
+      const char *libs = "-L" MFEM_INSTALL_DIR "/lib -lmfem " MFEM_EXT_LIBS;
       const char *link = "" MFEM_LINK_FLAGS;
       const char *flags = "" MFEM_BUILD_FLAGS;
 
       size_t seed = // src is ready: compute its seed with all the MFEM context
-         mfem::Jit::Hash(hash<string> {}(ker.src.str()),
+         mfem::JIT::Hash(hash<string> {}(ker.src.str()),
                          string(cxx), string(libs), string(flags),
                          string(MFEM_SOURCE_DIR), string(MFEM_INSTALL_DIR));
 
@@ -470,13 +470,13 @@ struct Parser
       // if needed, (c)make sets this directory for each file
       out << "\n#ifndef MFEM_JIT_INC_PATH\n#define MFEM_JIT_INC_PATH\n#endif";
       out << "\nconst char *dir = \"\" MFEM_JIT_INC_PATH;";
-      out << "\nconst size_t hash = Jit::Hash("
+      out << "\nconst size_t hash = JIT::Hash("
           << "0x" << std::hex << seed << std::dec << "ul"
           << "," << ker.Targs << ");";
       out << "\ntypedef void (*kernel_t)"
           <<"(" << ker.Sparams << ");";
-      out << "\nstatic std::unordered_map<size_t, Jit::Kernel<kernel_t>> kernels;"
-          << "\nJit::Find(hash, \"" << ker.name << "<" << ker.Tformat << ">"
+      out << "\nstatic std::unordered_map<size_t, JIT::Kernel<kernel_t>> kernels;"
+          << "\nJIT::Find(hash, \"" << ker.name << "<" << ker.Tformat << ">"
           << "\", cxx, flags, link, libs, dir, source, kernels" << ", "
           << ker.Targs << ").Launch(" << ker.Sargs << ");";
       out << pp_line();
@@ -519,7 +519,7 @@ struct Parser
       if (ker.is_include())
       {
          ker.advance(); check(ker.is_wait());
-         token(); // to handle imediate MFEM_JIT (Parse while does a put)
+         token(); // to handle immediate MFEM_JIT (Parse while does a put)
       }
    }
 
@@ -553,7 +553,8 @@ int main(const int argc, char* argv[])
    string input, output, file;
    auto Help = [&]()
    {
-      std::cout << "mjit: " << argv[0] << " [-h] [-o out] in" << std::endl;
+      std::cout << "mjit: " << argv[0]
+                << " [-h] [-o output_file] input_file" << std::endl;
       return EXIT_SUCCESS;
    };
    if (argc <= 1) { return Help(); }

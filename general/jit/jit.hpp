@@ -30,10 +30,10 @@ namespace mfem
 {
 
 /**
- * @brief The Jit structure provides the folowing static functions:
+ * @brief The Jit structure provides the following static functions:
  *    - Jit::Init(), used in Mpi::Init(),
  *    - Jit::Finalize(), used in Mpi::Finalize(),
- *    - Jit::Configure(), to optionaly set the basename, path of the cache,
+ *    - Jit::Configure(), to optionally set the basename, path of the cache,
  *      as well as a boolean telling to keep the cache or not.
  *      The default cache basename is \c mjit, path is \c '.' (outputed in
  *      current directory) and the cache library is \c kept.
@@ -45,7 +45,7 @@ namespace mfem
  *    - Jit::Find() which finds a kernel in a given @a map, if the kernel cannot
  *      be found, it will do the compilation and insert it into the map.
  */
-class Jit
+class JIT
 {
 public:
    /// @brief Initialize JIT, used in the MPI communication singleton.
@@ -86,10 +86,10 @@ public:
     *  @param[in] hash of the kernel as a \c size_t,
     *  @param[in] name of the kernel with the templated inputs,
     *  @param[in] cxx MFEM's CXX compiler,
-    *  @param[in] flags coresponding to MFEM_BUILD_FLAGS,
-    *  @param[in] link coresponding to MFEM_LINK_FLAGS,
-    *  @param[in] libs coresponding to MFEM_EXT_LIBS,
-    *  @param[in] dir coresponding to the relative mfem include directory,
+    *  @param[in] flags corresponding to MFEM_BUILD_FLAGS,
+    *  @param[in] link corresponding to MFEM_LINK_FLAGS,
+    *  @param[in] libs corresponding to MFEM_EXT_LIBS,
+    *  @param[in] dir corresponding to the relative mfem include directory,
     *  @param[in] src source of the kernel,
     *  @param[in] sym symbol of the kernel.
     **/
@@ -109,17 +109,17 @@ public:
       *  @param[in] hash of the kernel,
       *  @param[in] name of the kernel with the templated inputs,
       *  @param[in] cxx MFEM's CXX compiler,
-      *  @param[in] flags coresponding to MFEM_BUILD_FLAGS,
-      *  @param[in] link coresponding to MFEM_LINK_FLAGS,
-      *  @param[in] libs coresponding to MFEM_EXT_LIBS,
-      *  @param[in] dir coresponding to the relative mfem include directory,
+      *  @param[in] flags corresponding to MFEM_BUILD_FLAGS,
+      *  @param[in] link corresponding to MFEM_LINK_FLAGS,
+      *  @param[in] libs corresponding to MFEM_EXT_LIBS,
+      *  @param[in] dir corresponding to the relative mfem include directory,
       *  @param[in] src source of the kernel,
       *  @param[in] sym symbol of the kernel.
       **/
       Kernel(const size_t hash, const char *name, const char *cxx,
              const char *flags, const char *link, const char *libs,
              const char *dir, const char *src, const char *sym):
-         kernel((T) Jit::Lookup(hash, name, cxx, flags, link, libs, dir, src, sym)) {}
+         kernel((T) JIT::Lookup(hash, name, cxx, flags, link, libs, dir, src, sym)) {}
 
       /// @brief Kernel launch operator
       template<typename... Args>
@@ -131,10 +131,10 @@ public:
     *  @param[in] hash of the kernel,
     *  @param[in] name of the kernel with the templated inputs,
     *  @param[in] cxx MFEM's CXX compiler,
-    *  @param[in] flags coresponding to MFEM_BUILD_FLAGS,
-    *  @param[in] link coresponding to MFEM_LINK_FLAGS,
-    *  @param[in] libs coresponding to MFEM_EXT_LIBS,
-    *  @param[in] dir coresponding to the relative mfem include directory,
+    *  @param[in] flags corresponding to MFEM_BUILD_FLAGS,
+    *  @param[in] link corresponding to MFEM_LINK_FLAGS,
+    *  @param[in] libs corresponding to MFEM_EXT_LIBS,
+    *  @param[in] dir corresponding to the relative mfem include directory,
     *  @param[in] src source of the kernel,
     *  @param[in] map local \c map of the current kernel,
     *  @param[in] Targs template runtime arguments of the JIT kernel.
@@ -161,14 +161,14 @@ public:
    }
 
 private:
-   Jit();
-   ~Jit();
+   JIT();
+   ~JIT();
 
-   Jit(Jit const&) = delete;
-   void operator=(Jit const&) = delete;
+   JIT(JIT const&) = delete;
+   void operator=(JIT const&) = delete;
 
-   static MFEM_EXPORT Jit jit_singleton;
-   static Jit& Get() { return jit_singleton; }
+   static MFEM_EXPORT JIT jit_singleton;
+   static JIT& Get() { return jit_singleton; }
 
    bool debug, std_system, keep_cache;
    std::vector<std::string> includes;
@@ -180,7 +180,7 @@ private:
 
    System *sys;
    std::ostringstream command;
-   static int Run(const char *header = nullptr);
+   static int Run(const char *kernel_name = nullptr);
 };
 
 } // namespace mfem
