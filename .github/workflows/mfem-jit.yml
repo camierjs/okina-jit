@@ -46,6 +46,9 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
+    - name: Get NPROCESSORS
+      run: getconf _NPROCESSORS_ONLN
+
     - name: MFEM Checkout
       uses: actions/checkout@v3
       with:
@@ -111,6 +114,7 @@ jobs:
         library-only: false
         config-options:
           MFEM_USE_JIT=YES
+          CXXFLAGS="-O1 -std=c++11"
 
     - name: MFEM info (Make)
       #if: matrix.build-system == 'make'
