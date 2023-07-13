@@ -46,14 +46,6 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
-    - name: Get NPROCESSORS
-      run: getconf _NPROCESSORS_ONLN
-
-    - name: MFEM Checkout
-      uses: actions/checkout@v3
-      with:
-        path: mfem
-
     # MPI setup on Linux and MacOS
     - name: MPI install (Linux)
       if: matrix.mpi == 'par' && matrix.os == 'ubuntu-latest'
@@ -66,6 +58,14 @@ jobs:
         export HOMEBREW_NO_INSTALL_CLEANUP=1
         brew install openmpi
 
+    - name: Get NPROCESSORS
+      run: getconf _NPROCESSORS_ONLN
+
+    - name: MFEM Checkout
+      uses: actions/checkout@v3
+      with:
+        path: mfem
+
     # HYPRE cache & install
     - name: HYPRE cache
       id: hypre-cache
@@ -75,13 +75,33 @@ jobs:
         path: ${{ env.HYPRE_DIR }}
         key: ${{ runner.os }}-build-${{ env.HYPRE_DIR }}
 
-    - name: HYPRE install
+#    - name: HYPRE install
+#      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
+#      uses: mfem/github-actions/build-hypre@v2.4
+#      with:
+#        archive: ${{ env.HYPRE_TGZ }}
+#        dir: ${{ env.HYPRE_DIR }}
+#        build-system: make
+
+    - name: Get Hypre
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
-      uses: mfem/github-actions/build-hypre@v2.4
-      with:
-        archive: ${{ env.HYPRE_TGZ }}
-        dir: ${{ env.HYPRE_DIR }}
-        build-system: make
+      run: |
+        wget --no-verbose https://github.com/hypre-space/hypre/archive/HYPRE_TGZ
+        rm -rf ${{ HYPRE_DIR }}
+        tar -xzf ${{ HYPRE_TGZ }}
+      shell: bash
+
+    - name: Install Hypre (make)
+      if: inputs.build-system == 'make'
+      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
+      run: |
+        cd ${{ env.HYPRE_DIR }}
+        install_prefix="$(pwd)/install"
+        cd src
+        ./configure --prefix=${install_prefix} --enable-shared CC=mpicc CXX=mpic++
+        make -j3
+        make install
+      shell: bash
 
     # METIS cache & install
     - name: METIS cache
