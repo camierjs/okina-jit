@@ -167,7 +167,7 @@ jobs:
         ./ex1 -pa -no-vis
         ./ex1 -pa -no-vis
         rm libmjit.[^a]*
-        ./ex1 -pa -no-vis
+        MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis
 
     - name: MFEM JIT par tests
       #if: matrix.build-system == 'make'
@@ -176,6 +176,8 @@ jobs:
       # MFEM_JIT_FORK forces the root MPI to fork before initialization
       # and use the child process to do the std::system calls
       run: |
+        ln -s ../../hypre/install/lib/libHYPRE.* .
+        ln -s ../../metis-5.0/lib/libmetis.* .
         make ex1p
         mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
