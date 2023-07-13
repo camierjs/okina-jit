@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
 
 env:
-  HYPRE_TGZ: v2.19.0.tar.gz
+  HYPRE_TGZ: v2.29.0.tar.gz
   HYPRE_DIR: hypre-2.19.0
   METIS_TGZ: metis-4.0.3.tar.gz
   METIS_DIR: metis-4.0.3
@@ -90,7 +90,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ${{ env.METIS_DIR }}
-        key: ${{ runner.os }}-build-${{ env.METIS_DIR }}-v2.2
+        key: ${{ runner.os }}-build-${{ env.METIS_DIR }}
 
     - name: METIS install
       if: matrix.mpi == 'par' && steps.metis-cache.outputs.cache-hit != 'true'
@@ -130,23 +130,27 @@ jobs:
       #if: matrix.build-system == 'make'
       if: matrix.mpi == 'seq'
       working-directory: mfem/examples
+      # 1. will create the JIT cache: archive + shared
+      # 2. will re-use the caches
+      # 3. remove the JIT shared lib, but keep the archive
+      # 4. will re-build the shared from archive
       run: |
-        ./ex1 -pa -no-vis # will create the JIT cache: archive + shared
-        ./ex1 -pa -no-vis # will re-use the caches
-        rm libmjit.[^a]*  # remove the JIT shared lib, but keep the archive
-        ./ex1 -pa -no-vis # will re-build the shared from archive
+        ./ex1 -pa -no-vis
+        ./ex1 -pa -no-vis
+        rm libmjit.[^a]*
+        ./ex1 -pa -no-vis
 
     - name: MFEM JIT par tests
       #if: matrix.build-system == 'make'
       if: matrix.mpi == 'par'
       working-directory: mfem/examples
+      # MFEM_JIT_FORK forces the root MPI to fork before initialization
+      # and use the child process to do the std::system calls
       run: |
         mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
         rm libmjit.[^a]*
         MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis
         rm libmjit.*
-        # MFEM_JIT_FORK force to root MPI to fork before initialization
-        # and use this process to do the std::system calls
         MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
