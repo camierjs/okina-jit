@@ -86,7 +86,7 @@ jobs:
     - name: Get Hypre
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
       run: |
-        wget --no-verbose https://github.com/hypre-space/hypre/archive/HYPRE_TGZ
+        wget --no-verbose https://github.com/hypre-space/hypre/archive/${{ env.HYPRE_TGZ }}
         rm -rf ${{ env.HYPRE_DIR }}
         tar -xzf ${{ env.HYPRE_TGZ }}
       shell: bash
