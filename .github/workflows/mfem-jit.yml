@@ -35,7 +35,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [par, seq]
+        mpi: [par] #, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -140,6 +140,7 @@ jobs:
         mfem-dir: mfem
         library-only: true
         config-options:
+          MFEM_SHARED=YES
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
@@ -178,6 +179,7 @@ jobs:
       run: |
         ln -s ../../hypre/install/lib/libHYPRE.* .
         ln -s ../../metis-5.0/lib/libmetis.* .
+        ln -la
         make ex1p
         mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
