@@ -35,7 +35,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [par] #, seq]
+        mpi: [par, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -163,6 +163,7 @@ jobs:
       # 3. remove the JIT shared lib, but keep the archive
       # 4. will re-build the shared from archive
       run: |
+        make ex1
         ./ex1 -pa -no-vis
         ./ex1 -pa -no-vis
         rm libmjit.[^a]*
@@ -175,6 +176,7 @@ jobs:
       # MFEM_JIT_FORK forces the root MPI to fork before initialization
       # and use the child process to do the std::system calls
       run: |
+        make ex1p
         mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
         rm libmjit.[^a]*
