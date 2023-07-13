@@ -92,8 +92,7 @@ jobs:
       shell: bash
 
     - name: Install Hypre (make)
-      if: inputs.build-system == 'make'
-      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
+      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && inputs.build-system == 'make'
       run: |
         cd ${{ env.HYPRE_DIR }}
         install_prefix="$(pwd)/install"
