@@ -175,6 +175,15 @@ MFEM_USE_BENCHMARK     = NO
 MFEM_USE_PARELAG       = NO
 MFEM_USE_ENZYME        = NO
 
+# JIT configuration, requires MFEM_SHARED compilation
+# Should be set before other library to add RPATH
+JIT_OPT =
+JIT_LIB = -ldl
+ifeq ($(MFEM_USE_JIT),YES)
+    STATIC = NO
+    SHARED = YES
+endif
+
 # MPI library compile and link flags
 # These settings are used only when building MFEM with MPI + HIP
 ifeq ($(MFEM_USE_MPI)$(MFEM_USE_HIP),YESYES)
@@ -212,6 +221,9 @@ LIBUNWIND_LIB = $(if $(NOTMAC),-lunwind -ldl,)
 HYPRE_DIR = @MFEM_DIR@/../hypre/src/hypre
 HYPRE_OPT = -I$(HYPRE_DIR)/include
 HYPRE_LIB = -L$(HYPRE_DIR)/lib -lHYPRE
+ifeq (YES,$(MFEM_SHARED))
+	HYPRE_LIB += $(XLINKER)-rpath,$(abspath $(HYPRE_DIR))/lib
+endif
 ifeq (YES,$(MFEM_USE_CUDA))
    # This is only necessary when hypre is built with cuda:
    HYPRE_LIB += -lcusparse -lcurand -lcublas
@@ -242,6 +254,9 @@ else
    METIS_OPT = -I$(METIS_DIR)/include
    METIS_LIB = -L$(METIS_DIR)/lib -lparmetis -lmetis
    MFEM_USE_METIS_5 = YES
+endif
+ifeq (YES,$(MFEM_SHARED))
+	METIS_LIB += $(XLINKER)-rpath,$(abspath $(METIS_DIR))/lib
 endif
 
 # LAPACK library configuration

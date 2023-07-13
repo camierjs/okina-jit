@@ -46,6 +46,7 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
+    # #########################################################################
     # MPI setup on Linux and MacOS
     - name: MPI install (Linux)
       if: matrix.mpi == 'par' && matrix.os == 'ubuntu-latest'
@@ -61,6 +62,7 @@ jobs:
     - name: Get NPROCESSORS
       run: getconf _NPROCESSORS_ONLN
 
+    # #########################################################################
     # METIS cache & install
     - name: METIS cache
       id: metis-cache
@@ -82,6 +84,7 @@ jobs:
         make install -j3
       shell: bash
 
+    # #########################################################################
     # HYPRE cache & install
     - name: HYPRE cache
       id: hypre-cache
@@ -120,6 +123,7 @@ jobs:
         make install
       shell: bash
 
+    # #########################################################################
     # MFEM checkout
     - name: MFEM Checkout
       uses: actions/checkout@v3
@@ -145,6 +149,8 @@ jobs:
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
 
+# MFEM_EXT_LIBS=
+
     - name: MFEM info (Make)
       #if: matrix.build-system == 'make'
       working-directory: mfem
@@ -155,6 +161,8 @@ jobs:
       working-directory: mfem
       run: make install
 
+    # #########################################################################
+    # JIT tests
     - name: MFEM JIT seq tests
       #if: matrix.build-system == 'make'
       if: matrix.mpi == 'seq'
@@ -177,9 +185,6 @@ jobs:
       # MFEM_JIT_FORK forces the root MPI to fork before initialization
       # and use the child process to do the std::system calls
       run: |
-        ln -s ../../hypre/install/lib/libHYPRE.* .
-        ln -s ../../metis-5.0/lib/libmetis.* .
-        ls -la
         make ex1p
         mpirun -np 3 ./ex1p -pa -no-vis
         mpirun -np 3 ./ex1p -pa -no-vis
