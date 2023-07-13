@@ -75,24 +75,26 @@ jobs:
         path: ${{ env.HYPRE_DIR }}
         key: ${{ runner.os }}-build-${{ env.HYPRE_DIR }}
 
-#    - name: HYPRE install
-#      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
-#      uses: mfem/github-actions/build-hypre@v2.4
-#      with:
-#        archive: ${{ env.HYPRE_TGZ }}
-#        dir: ${{ env.HYPRE_DIR }}
-#        build-system: make
+    # HYPRE install through action for MacOS only, which has dynamic_lookup
+    - name: HYPRE install
+      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'macos-latest'
+      uses: mfem/github-actions/build-hypre@v2.4
+      with:
+        archive: ${{ env.HYPRE_TGZ }}
+        dir: ${{ env.HYPRE_DIR }}
+        build-system: make
 
-    - name: Get Hypre
-      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
+    # HYPRE install with shared build enabled for Linux
+    - name: Get Hypre (Linux)
+      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest'
       run: |
         wget --no-verbose https://github.com/hypre-space/hypre/archive/${{ env.HYPRE_TGZ }}
         rm -rf ${{ env.HYPRE_DIR }}
         tar -xzf ${{ env.HYPRE_TGZ }}
       shell: bash
 
-    - name: Install Hypre (make)
-      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && inputs.build-system == 'make'
+    - name: Install Hypre (Linux, make)
+      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest' && matrix.build-system == 'make'
       run: |
         cd ${{ env.HYPRE_DIR }}
         install_prefix="$(pwd)/install"
