@@ -35,7 +35,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [seq] #, par]
+        mpi: [seq, par]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -126,8 +126,27 @@ jobs:
       working-directory: mfem
       run: make install
 
-    - name: MFEM test
+    - name: MFEM JIT seq tests
       #if: matrix.build-system == 'make'
+      if: matrix.mpi == 'seq'
       working-directory: mfem/examples
       run:
-        ./ex1 -pa
+        ./ex1 -pa -no-vis # will create the JIT cache: archive + shared
+        ./ex1 -pa -no-vis # will re-use the caches
+        rm libmjit.[^a]*  # remove the JIT shared lib, but keep the archive
+        ./ex1 -pa -no-vis # will re-build the shared from archive
+
+    - name: MFEM JIT par tests
+      #if: matrix.build-system == 'make'
+      if: matrix.mpi == 'par'
+      working-directory: mfem/examples
+      run:
+        mpirun -np 3 ./ex1p -pa -no-vis
+        mpirun -np 3 ./ex1p -pa -no-vis
+        rm libmjit.[^a]*
+        MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis
+        rm libmjit.*
+        # MFEM_JIT_FORK force to root MPI to fork before initialization
+        # and use this process to do the std::system calls
+        MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis
+        mpirun -np 3 ./ex1p -pa -no-vis
