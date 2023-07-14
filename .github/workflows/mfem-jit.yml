@@ -115,13 +115,19 @@ jobs:
         echo "HYPRE_DIR=unused" >> "$GITHUB_ENV"
 
     # #########################################################################
-    # MFEM debug (-pedantic -Wall -Werror) and g++ on ubuntu warns about multiple
-    # maybe-uninitialized variables. The 'no-maybe-uninitialized' option should
-    # be removed when resolved.
+
     - name: MFEM Checkout
       uses: actions/checkout@v3
       with:
         path: mfem
+
+    # MFEM debug (-pedantic -Wall -Werror) and g++ on ubuntu warns about multiple
+    # maybe-uninitialized variables. The 'no-maybe-uninitialized' option should
+    # be removed when resolved.
+    - name: Set extra compiler options (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        echo "CXXFLAGS_OPT=-Wno-maybe-uninitialized" >> "$GITHUB_ENV"
 
     - name: MFEM config and build (Make)
       if: matrix.build-system == 'make'
@@ -138,7 +144,7 @@ jobs:
         config-options:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
-          CXXFLAGS="-O1 -std=c++11 -Wno-maybe-uninitialized"
+          CXXFLAGS="-O1 -std=c++11 ${{ env.CXXFLAGS_OPT }}"
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
