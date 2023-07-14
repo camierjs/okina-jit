@@ -221,9 +221,9 @@ LIBUNWIND_LIB = $(if $(NOTMAC),-lunwind -ldl,)
 HYPRE_DIR = @MFEM_DIR@/../hypre/src/hypre
 HYPRE_OPT = -I$(HYPRE_DIR)/include
 HYPRE_LIB = -L$(HYPRE_DIR)/lib -lHYPRE
-ifeq (YES,$(SHARED))
-	HYPRE_LIB += $(XLINKER)-rpath,$(realpath $(HYPRE_DIR))/lib
-endif
+#ifeq (YES,$(SHARED))
+#	HYPRE_LIB += $(XLINKER)-rpath,$(realpath $(HYPRE_DIR))/lib
+#endif
 ifeq (YES,$(MFEM_USE_CUDA))
    # This is only necessary when hypre is built with cuda:
    HYPRE_LIB += -lcusparse -lcurand -lcublas
@@ -245,9 +245,9 @@ ifeq ($(MFEM_USE_SUPERLU)$(MFEM_USE_STRUMPACK)$(MFEM_USE_MUMPS),NONONO)
      METIS_OPT = -I$(METIS_DIR)/include
      METIS_LIB = -L$(METIS_DIR)/lib -lmetis
    endif
-	ifeq (YES,$(SHARED))
-		METIS_LIB += $(XLINKER)-rpath,$(realpath $(METIS_DIR))/lib
-	endif
+#	ifeq (YES,$(SHARED))
+#		METIS_LIB += $(XLINKER)-rpath,$(realpath $(METIS_DIR))/lib
+#	endif
 else
    # ParMETIS: currently needed by SuperLU or STRUMPACK. We assume that METIS 5
    # (included with ParMETIS) is installed in the same location.
@@ -257,9 +257,9 @@ else
    METIS_OPT = -I$(METIS_DIR)/include
    METIS_LIB = -L$(METIS_DIR)/lib -lparmetis -lmetis
    MFEM_USE_METIS_5 = YES
-	ifeq (YES,$(SHARED))
-		METIS_LIB += $(XLINKER)-rpath,$(realpath $(METIS_DIR))/lib
-	endif
+#	ifeq (YES,$(SHARED))
+#		METIS_LIB += $(XLINKER)-rpath,$(realpath $(METIS_DIR))/lib
+#	endif
 endif
 
 # LAPACK library configuration
