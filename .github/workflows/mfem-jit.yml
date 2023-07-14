@@ -141,8 +141,8 @@ jobs:
         path: mfem
 
     # Make MFEM config and build
-    - name: MFEM config and build (Parallel, Make)
-      if: matrix.build-system == 'make' && matrix.mpi == 'par'
+    - name: MFEM config and build (Make)
+      if: matrix.build-system == 'make' # && matrix.mpi == 'par'
       uses: mfem/github-actions/build-mfem@v2.4
       with:
         os: ${{ matrix.os }}
