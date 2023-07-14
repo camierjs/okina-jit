@@ -126,9 +126,12 @@ jobs:
 
     # #########################################################################
     - name: METIS, HYPRE install directory
+      if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
         echo METIS_DIR:${{ env.METIS_DIR }}
         echo HYPRE_DIR:${{ env.HYPRE_DIR }}
+        echo "METIS_DIR_OPT=HYPRE_DIR=METIS_DIR=${{ env.METIS_DIR }}" >> "$GITHUB_ENV"
+        echo "HYPRE_DIR_OPT=HYPRE_DIR=${{ env.HYPRE_DIR }}/install" >> "$GITHUB_ENV"
 
     # #########################################################################
     # MFEM checkout
@@ -138,8 +141,8 @@ jobs:
         path: mfem
 
     # Make MFEM config and build
-    - name: MFEM config and build (Make)
-      #if: matrix.build-system == 'make'
+    - name: MFEM config and build (Parallel, Make)
+      if: matrix.build-system == 'make' && matrix.mpi == 'par'
       uses: mfem/github-actions/build-mfem@v2.4
       with:
         os: ${{ matrix.os }}
@@ -154,8 +157,8 @@ jobs:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
-          METIS_DIR=${{ env.METIS_DIR }}
-          HYPRE_DIR=${{ env.HYPRE_DIR }}/install
+          ${{ env.METIS_DIR_OPT }}
+          ${{ env.HYPRE_DIR_OPT }}
 
     - name: MFEM info (Make)
       if: matrix.build-system == 'make'
