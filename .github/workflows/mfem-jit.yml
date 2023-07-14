@@ -154,7 +154,7 @@ jobs:
         target: ${{ matrix.target }}
         mpi: ${{ matrix.mpi }}
         build-system: ${{ matrix.build-system }}
-        hypre-dir: ${{ env.HYPRE_DIR }}
+        hypre-dir: ${{ env.METIS_ABS_LNK }}
         metis-dir: ${{ env.METIS_DIR }}
         mfem-dir: mfem
         library-only: true
@@ -162,7 +162,7 @@ jobs:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
-          METIS_DIR=${{ env.METIS_ABS_DIR }}
+          METIS_DIR=${{ env.METIS_ABS_LNK }}
           HYPRE_DIR=${{ env.HYPRE_ABS_DIR }}/install
 
     - name: MFEM info (Make)
