@@ -78,11 +78,9 @@ jobs:
         rm -rf metis-${{ env.METIS_VER }}
         tar -xzf metis-${{ env.METIS_VER }}.tar.gz
         install="$(pwd)/metis-5.0"
-        echo "METIS_DIR=${install}" >> "$GITHUB_ENV"
         cd metis-${{ env.METIS_VER }}
         make config shared=1 prefix=${install}
         make install -j3
-      shell: bash
 
     # #########################################################################
     # HYPRE cache & install
@@ -91,7 +89,7 @@ jobs:
       if: matrix.mpi == 'par'
       uses: actions/cache@v3
       with:
-        path: hypre-${{ env.HYPRE_VER }}-shared
+        path: hypre-${{ env.HYPRE_VER }}
         key: ${{ runner.os }}-build-hypre-${{ env.HYPRE_VER }}
 
     # HYPRE install through action for MacOS only, which has dynamic_lookup
@@ -104,32 +102,27 @@ jobs:
         build-system: make
 
     # HYPRE install with shared build enabled for Linux
-    - name: HYPRE download (Linux)
+    - name: HYPRE install (Linux)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest'
       run: |
         wget --no-verbose https://github.com/hypre-space/hypre/archive/v${{ env.HYPRE_VER }}.tar.gz
         rm -rf hypre-${{ env.HYPRE_VER }}
         tar -xzf v${{ env.HYPRE_VER }}.tar.gz
-      shell: bash
-
-    - name: HYPRE install (Linux, make)
-      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest' && matrix.build-system == 'make'
-      run: |
-        cd hypre-${{ env.HYPRE_VER }}
-        install="$(pwd)/install"
-        echo "HYPRE_DIR=$(pwd)" >> "$GITHUB_ENV"
-        cd src
+        install="$(pwd)/hypre-${{ env.HYPRE_VER }}/install"
+        cd hypre-${{ env.HYPRE_VER }}/src
         ./configure --prefix=${install} --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
-        make -j3
-        make install
-      shell: bash
+        make install -j3
 
     # #########################################################################
     - name: METIS, HYPRE install directory (par)
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
-        echo "METIS_DIR_OPT=METIS_DIR=${{ env.METIS_DIR }}" >> "$GITHUB_ENV"
-        echo "HYPRE_DIR_OPT=HYPRE_DIR=${{ env.HYPRE_DIR }}/install" >> "$GITHUB_ENV"
+        metis_dir="$(pwd)/metis-5.0"
+        hypre_dir="$(pwd)/hypre-${{ env.HYPRE_VER }}/install"
+        echo "METIS_DIR=${metis_dir}" >> "$GITHUB_ENV"
+        echo "HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
+        echo "METIS_DIR_OPT=METIS_DIR=${metis_dir}" >> "$GITHUB_ENV"
+        echo "HYPRE_DIR_OPT=HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
 
     # #########################################################################
     - name: METIS, HYPRE install directory (seq)
