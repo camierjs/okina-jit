@@ -93,7 +93,7 @@ jobs:
         tar -xzf v${{env.HYPRE_VER}}.tar.gz
         install="$(pwd)/hypre-${{ env.HYPRE_VER }}/install"
         cd hypre-${{env.HYPRE_VER}}/src
-        ./configure --prefix=${install} --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
+        ./configure --prefix=${install} --disable-fortran --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
         make install -j3
 
     # #########################################################################
