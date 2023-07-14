@@ -176,8 +176,7 @@ jobs:
     # #########################################################################
     # JIT sequential tests
     - name: MFEM JIT sequential tests
-      if: matrix.build-system == 'make'
-      if: matrix.mpi == 'seq'
+      if: matrix.build-system == 'make' && matrix.mpi == 'seq'
       working-directory: mfem/examples
       # 1. will create the JIT cache: archive + shared
       # 2. will re-use the caches
