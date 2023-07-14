@@ -83,11 +83,8 @@ jobs:
         cd ${{ env.METIS_DIR }}
         make config shared=1 prefix=${install_prefix}
         make install -j3
+        cd ..
       shell: bash
-
-      # #########################################################################
-      - name: Get pwd after METIS
-        run: pwd
 
     # #########################################################################
     # HYPRE cache & install
@@ -112,7 +109,6 @@ jobs:
     - name: Get Hypre (Linux)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest'
       run: |
-        pwd
         wget --no-verbose https://github.com/hypre-space/hypre/archive/${{ env.HYPRE_TGZ }}
         rm -rf ${{ env.HYPRE_DIR }}
         tar -xzf ${{ env.HYPRE_TGZ }}
@@ -121,18 +117,14 @@ jobs:
     - name: Install Hypre (Linux, make)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest' && matrix.build-system == 'make'
       run: |
-        pwd
         cd ${{ env.HYPRE_DIR }}
         install_prefix="$(pwd)/install"
         cd src
         ./configure --prefix=${install_prefix} --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
         make -j3
         make install
+        cd ../..
       shell: bash
-
-    # #########################################################################
-    - name: Get pwd after HYPRE
-      run: pwd
 
     # #########################################################################
     # MFEM checkout
@@ -164,16 +156,12 @@ jobs:
     - name: MFEM info (Make)
       #if: matrix.build-system == 'make'
       working-directory: mfem
-      run: |
-        pwd
-        make info
+      run: make info
 
     - name: MFEM install (Make)
       #if: matrix.build-system == 'make'
       working-directory: mfem
-      run: |
-        pwd
-        make install
+      run: make install
 
     # #########################################################################
     # JIT tests
