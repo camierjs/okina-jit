@@ -25,7 +25,6 @@ on:
 env:
   HYPRE_VER: 2.29.0
   METIS_VER: 5.1.0
-  LD_LIBRARY_PATH:
 
 jobs:
   Just-In-Time-Tests:
@@ -34,7 +33,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [par, seq]
+        mpi: [par] #, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -121,6 +120,10 @@ jobs:
         echo "METIS_DIR_OPT=METIS_DIR=${metis_dir}" >> "$GITHUB_ENV"
         echo "HYPRE_DIR_OPT=HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
         echo "LD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/install/lib" >> "$GITHUB_ENV"
+
+    - name: Environment display (make, par)
+      if: matrix.build-system == 'make' && matrix.mpi == 'par'
+      run: env
 
     # #########################################################################
     - name: METIS, HYPRE install directory (seq)
