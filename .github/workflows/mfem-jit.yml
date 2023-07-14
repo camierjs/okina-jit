@@ -150,6 +150,7 @@ jobs:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
+          HYPRE_DIR=../hypre/install
 
 # MFEM_EXT_LIBS=
 
