@@ -119,7 +119,7 @@ jobs:
         echo "HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
         echo "METIS_DIR_OPT=METIS_DIR=${metis_dir}" >> "$GITHUB_ENV"
         echo "HYPRE_DIR_OPT=HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
-        echo "LD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/install/lib" >> "$GITHUB_ENV"
+        echo "LD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
 
     - name: Environment display (make, par)
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
