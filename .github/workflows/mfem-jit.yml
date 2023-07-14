@@ -35,8 +35,8 @@ jobs:
       matrix:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
-        target: [opt] #, dbg]
-        mpi: [par] #, seq]
+        target: [opt, dbg]
+        mpi: [par, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -83,8 +83,8 @@ jobs:
       if: matrix.mpi == 'par'
       uses: actions/cache@v3
       with:
-        path: ${{ env.METIS_ABS_LNK }}
-        key: ${{ runner.os }}-build-${{ env.METIS_ABS_LNK }}
+        path: ${{ env.METIS_LNK }}
+        key: ${{ runner.os }}-build-${{ env.METIS_LNK }}
 
     - name: METIS install
       if: matrix.mpi == 'par' && steps.metis-cache.outputs.cache-hit != 'true'
@@ -95,7 +95,6 @@ jobs:
         cd ${{ env.METIS_DIR }}
         make config shared=1 prefix=${{ env.METIS_ABS_LNK }}
         make install -j3
-        cd ..
       shell: bash
 
     # #########################################################################
@@ -126,7 +125,7 @@ jobs:
         tar -xzf ${{ env.HYPRE_TGZ }}
       shell: bash
 
-    - name: Install Hypre (Linux, make)
+    - name: HYPRE install (Linux, make)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest' && matrix.build-system == 'make'
       run: |
         cd ${{ env.HYPRE_DIR }}
@@ -135,7 +134,6 @@ jobs:
         ./configure --prefix=${install_prefix} --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
         make -j3
         make install
-        cd ../..
       shell: bash
 
     # #########################################################################
@@ -186,26 +184,37 @@ jobs:
       # 3. remove the JIT shared lib, but keep the archive
       # 4. will re-build the shared from archive
       run: |
+        echo -e "\033[33m--- Compiling ex1 ---\033[m"
         make ex1
+        echo -e "\033[33m--- First run will create the JIT cache: archive + shared ---\033[m"
         ./ex1 -pa -no-vis
+        echo -e "\033[33m--- Second run will re-use the caches ---\033[m"
         ./ex1 -pa -no-vis
+        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one ---\033[m"
         rm libmjit.[^a]*
+        echo -e "\033[33m--- Now using MFEM_JIT_DEBUG environment variable to show all JIT commands ---\033[m"
         MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis
 
     # #########################################################################
     # JIT parallel tests
+    # MFEM_JIT_FORK forces the root MPI to fork before initialization
+    # and use the child process to do the std::system calls
+    # #########################################################################
     - name: MFEM JIT par tests
-      #if: matrix.build-system == 'make'
-      if: matrix.mpi == 'par'
       working-directory: mfem/examples
-      # MFEM_JIT_FORK forces the root MPI to fork before initialization
-      # and use the child process to do the std::system calls
+      if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
+        echo -e "\033[33m--- Compiling ex1p ---\033[m"
         make ex1p
+        echo -e "\033[33m--- First run will create the JIT cache: archive + shared ---\033[m"
         mpirun -np 3 ./ex1p -pa -no-vis
+        echo -e "\033[33m--- Second run will re-use the caches ---\033[m"
         mpirun -np 3 ./ex1p -pa -no-vis
+        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one ---\033[m"
         rm libmjit.[^a]*
+        echo -e "\033[33m--- Using MFEM_JIT_DEBUG to see the JIT command ---\033[m"
         MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis
+        echo -e "\033[33m--- Removing all JIT cache ---\033[m"
         rm libmjit.*
+        echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system ---\033[m"
         MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis
-        mpirun -np 3 ./ex1p -pa -no-vis
