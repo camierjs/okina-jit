@@ -175,15 +175,6 @@ MFEM_USE_BENCHMARK     = NO
 MFEM_USE_PARELAG       = NO
 MFEM_USE_ENZYME        = NO
 
-# JIT configuration, requires MFEM_SHARED compilation
-# Should be set before other library to add RPATH
-JIT_OPT =
-JIT_LIB = -ldl
-ifeq ($(MFEM_USE_JIT),YES)
-    STATIC = NO
-    SHARED = YES
-endif
-
 # MPI library compile and link flags
 # These settings are used only when building MFEM with MPI + HIP
 ifeq ($(MFEM_USE_MPI)$(MFEM_USE_HIP),YESYES)
@@ -245,9 +236,6 @@ ifeq ($(MFEM_USE_SUPERLU)$(MFEM_USE_STRUMPACK)$(MFEM_USE_MUMPS),NONONO)
      METIS_OPT = -I$(METIS_DIR)/include
      METIS_LIB = -L$(METIS_DIR)/lib -lmetis
    endif
-#	ifeq (YES,$(SHARED))
-#		METIS_LIB += $(XLINKER)-rpath,$(realpath $(METIS_DIR))/lib
-#	endif
 else
    # ParMETIS: currently needed by SuperLU or STRUMPACK. We assume that METIS 5
    # (included with ParMETIS) is installed in the same location.
@@ -257,9 +245,6 @@ else
    METIS_OPT = -I$(METIS_DIR)/include
    METIS_LIB = -L$(METIS_DIR)/lib -lparmetis -lmetis
    MFEM_USE_METIS_5 = YES
-#	ifeq (YES,$(SHARED))
-#		METIS_LIB += $(XLINKER)-rpath,$(realpath $(METIS_DIR))/lib
-#	endif
 endif
 
 # LAPACK library configuration
