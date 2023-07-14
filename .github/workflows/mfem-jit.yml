@@ -64,6 +64,14 @@ jobs:
       run: getconf _NPROCESSORS_ONLN
 
     # #########################################################################
+    - name: Readlinks METIS, HYPRE
+      run: |
+        echo "METIS_ABS_DIR=$(readlink -f ${{ env.METIS_DIR }})" >> "$GITHUB_ENV"
+        echo METIS_ABS_DIR:${{ env.METIS_ABS_DIR }}
+        echo "HYPRE_ABS_DIR=$(readlink -f ${{ env.HYPRE_DIR }})" >> "$GITHUB_ENV"
+        echo HYPRE_ABS_DIR:${{ env.HYPRE_ABS_DIR }}
+
+    # #########################################################################
     # METIS cache & install
     - name: METIS cache
       id: metis-cache
