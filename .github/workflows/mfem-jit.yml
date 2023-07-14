@@ -150,7 +150,8 @@ jobs:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
-          HYPRE_DIR=../hypre/install
+          HYPRE_DIR=/home/runner/work/okina-jit/okina-jit/hypre-2.29.0/install
+          METIS_DIR=/home/runner/work/okina-jit/okina-jit/metis-5.0
 
 # MFEM_EXT_LIBS=
 
