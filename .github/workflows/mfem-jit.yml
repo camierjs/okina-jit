@@ -125,12 +125,12 @@ jobs:
     # MFEM debug (-pedantic -Wall -Werror) and g++ on ubuntu warns about multiple
     # maybe-uninitialized variables. The 'no-maybe-uninitialized' option should
     # be removed when resolved.
-    - name: Set extra compiler options (Linux)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Set extra compiler options (make, Linux)
+      if: matrix.build-system == 'make' && matrix.os == 'ubuntu-latest'
       run: |
         echo "CXXFLAGS_OPT=-Wno-maybe-uninitialized" >> "$GITHUB_ENV"
 
-    - name: MFEM config and build (Make)
+    - name: MFEM config and build (make)
       if: matrix.build-system == 'make'
       uses: mfem/github-actions/build-mfem@v2.4
       with:
@@ -149,12 +149,12 @@ jobs:
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
-    - name: MFEM info (Make)
+    - name: MFEM info (make)
       if: matrix.build-system == 'make'
       working-directory: mfem
       run: make info
 
-    - name: MFEM install (Make)
+    - name: MFEM install (make)
       if: matrix.build-system == 'make'
       working-directory: mfem
       run: make install
@@ -197,25 +197,6 @@ jobs:
         MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
 
     # #########################################################################
-    - name: MFEM JIT parallel unit tests
-      if: matrix.build-system == 'make' && matrix.mpi == 'par'
-      working-directory: mfem/tests/unit
-      run: |
-        echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
-        make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
-        echo -e "\033[33m--- Running parallel JIT tests\033[m"
-        ./pmjit_tests
-        echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
-        mpirun -np 3 ./psedov_tests_debug --verbose
-        echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
-        mpirun -np 3 ./psedov_tests_cpu --verbose
-        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
-        rm libmjit.[^a]*
-        mpirun -np 3 ./psedov_tests_cpu --verbose
-        echo -e "\033[33m--- Running tmop tests with the cpu device\033[m"
-        mpirun -np 3 ./ptmop_pa_tests_cpu --verbose
-
-    # #########################################################################
     - name: MFEM JIT parallel examples tests
       working-directory: mfem/examples
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
@@ -223,7 +204,7 @@ jobs:
         echo -e "\033[33m--- Compiling ex1p\033[m"
         make ex1p
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        DYLD_LIBRARY_PATH=${{ env.METIS_DIR }}/lib:${{ env.HYPRE_DIR }}/lib mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Second run will re-use the caches\033[m"
         mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
@@ -234,3 +215,23 @@ jobs:
         rm libmjit.*
         echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system\033[m"
         MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+
+    # #########################################################################
+    - name: MFEM JIT parallel unit tests
+      if: matrix.build-system == 'make' && matrix.mpi == 'par'
+      working-directory: mfem/tests/unit
+      run: |
+        echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
+        make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
+        echo -e "\033[33m--- Running parallel JIT tests\033[m"
+        mpirun -np 3 ./pmjit_tests
+        echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
+        mpirun -np 3 ./psedov_tests_debug --verbose
+        echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
+        mpirun -np 3 ./psedov_tests_cpu --verbose
+        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
+        rm libmjit.[^a]*
+        mpirun -np 3 ./psedov_tests_cpu --verbose
+        echo -e "\033[33m--- Running tmop tests with the cpu device\033[m"
+        mpirun -np 3 ./ptmop_pa_tests_cpu --verbose
+
