@@ -45,7 +45,6 @@ jobs:
         access_token: ${{ github.token }}
 
     # #########################################################################
-    # MPI setup on Linux and MacOS
     - name: MPI install (Linux)
       if: matrix.mpi == 'par' && matrix.os == 'ubuntu-latest'
       run: |
@@ -58,7 +57,6 @@ jobs:
         brew install openmpi
 
     # #########################################################################
-    # METIS cache & install
     - name: METIS cache
       id: metis-cache
       if: matrix.mpi == 'par'
@@ -79,7 +77,6 @@ jobs:
         make install -j3
 
     # #########################################################################
-    # HYPRE cache & install
     - name: HYPRE cache
       id: hypre-cache
       if: matrix.mpi == 'par'
@@ -88,9 +85,8 @@ jobs:
         path: hypre-${{ env.HYPRE_VER }}
         key: ${{ runner.os }}-hypre-${{ env.HYPRE_VER }}-shared
 
-    # HYPRE install with shared build enabled
     - name: HYPRE install
-      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
+      if: matrix.mpi == 'par' && stegps.hypre-cache.outputs.cache-hit != 'true'
       run: |
         wget --no-verbose https://github.com/hypre-space/hypre/archive/v${{env.HYPRE_VER}}.tar.gz
         rm -rf hypre-${{env.HYPRE_VER}}
@@ -112,21 +108,18 @@ jobs:
         echo "HYPRE_DIR_OPT=HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
         echo "LD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
 
-    # #########################################################################
-    - name: METIS, HYPRE install directory (seq)
+    - name: Set METIS_DIR and HYPRE_DIR (seq)
       if: matrix.build-system == 'make' && matrix.mpi == 'seq'
       run: |
         echo "METIS_DIR=unused" >> "$GITHUB_ENV"
         echo "HYPRE_DIR=unused" >> "$GITHUB_ENV"
 
     # #########################################################################
-    # MFEM checkout
     - name: MFEM Checkout
       uses: actions/checkout@v3
       with:
         path: mfem
 
-    # Make MFEM config and build
     - name: MFEM config and build (Make)
       if: matrix.build-system == 'make'
       uses: mfem/github-actions/build-mfem@v2.4
@@ -140,10 +133,9 @@ jobs:
         mfem-dir: mfem
         library-only: true
         config-options:
-          CXX="clang++-14"
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
-          CXXFLAGS="-O1 -std=c++11"
+          CXXFLAGS="-O1 -std=c++11 -Wno-maybe-uninitialized"
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
@@ -158,7 +150,6 @@ jobs:
       run: make install
 
     # #########################################################################
-    # JIT sequential tests
     - name: MFEM JIT sequential tests
       if: matrix.build-system == 'make' && matrix.mpi == 'seq'
       working-directory: mfem/examples
@@ -175,7 +166,6 @@ jobs:
         MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
 
     # #########################################################################
-    # JIT parallel tests
     - name: MFEM JIT parallel tests
       working-directory: mfem/examples
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
