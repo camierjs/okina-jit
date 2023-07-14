@@ -67,13 +67,13 @@ jobs:
     # #########################################################################
     - name: Set readlinks METIS, HYPRE
       run: |
-        echo "METIS_ABS_DIR=$(readlink -f ${{ env.METIS_LNK }})" >> "$GITHUB_ENV"
+        echo "METIS_ABS_LNK=$(readlink -f ${{ env.METIS_LNK }})" >> "$GITHUB_ENV"
         echo "HYPRE_ABS_DIR=$(readlink -f ${{ env.HYPRE_DIR }})" >> "$GITHUB_ENV"
 
     # #########################################################################
     - name: Get readlinks METIS, HYPRE
       run: |
-        echo METIS_ABS_DIR:${{ env.METIS_ABS_DIR }}
+        echo METIS_ABS_LNK:${{ env.METIS_ABS_LNK }}
         echo HYPRE_ABS_DIR:${{ env.HYPRE_ABS_DIR }}
 
     # #########################################################################
@@ -83,8 +83,8 @@ jobs:
       if: matrix.mpi == 'par'
       uses: actions/cache@v3
       with:
-        path: ${{ env.METIS_DIR }}
-        key: ${{ runner.os }}-build-${{ env.METIS_DIR }}
+        path: ${{ env.METIS_ABS_LNK }}
+        key: ${{ runner.os }}-build-${{ env.METIS_ABS_LNK }}
 
     - name: METIS install
       if: matrix.mpi == 'par' && steps.metis-cache.outputs.cache-hit != 'true'
@@ -92,9 +92,8 @@ jobs:
         wget --no-verbose https://mfem.github.io/tpls/${{ env.METIS_TGZ }}
         rm -rf ${{ env.METIS_DIR }}
         tar -xzf ${{ env.METIS_TGZ }}
-        install_prefix="$(pwd)/metis-5.0"
         cd ${{ env.METIS_DIR }}
-        make config shared=1 prefix=${install_prefix}
+        make config shared=1 prefix=${{ env.METIS_ABS_LNK }}
         make install -j3
         cd ..
       shell: bash
@@ -166,8 +165,6 @@ jobs:
           METIS_DIR=${{ env.METIS_ABS_DIR }}
           HYPRE_DIR=${{ env.HYPRE_ABS_DIR }}/install
 
-# MFEM_EXT_LIBS=
-
     - name: MFEM info (Make)
       #if: matrix.build-system == 'make'
       working-directory: mfem
@@ -179,7 +176,7 @@ jobs:
       run: make install
 
     # #########################################################################
-    # JIT tests
+    # JIT sequential tests
     - name: MFEM JIT seq tests
       #if: matrix.build-system == 'make'
       if: matrix.mpi == 'seq'
@@ -195,6 +192,8 @@ jobs:
         rm libmjit.[^a]*
         MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis
 
+    # #########################################################################
+    # JIT parallel tests
     - name: MFEM JIT par tests
       #if: matrix.build-system == 'make'
       if: matrix.mpi == 'par'
