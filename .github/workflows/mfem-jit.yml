@@ -140,6 +140,7 @@ jobs:
         mfem-dir: mfem
         library-only: true
         config-options:
+          CXX="clang++-14"
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
