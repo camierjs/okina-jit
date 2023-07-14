@@ -27,6 +27,7 @@ env:
   HYPRE_DIR: hypre-2.29.0
   METIS_TGZ: metis-5.1.0.tar.gz
   METIS_DIR: metis-5.1.0
+  METIS_LNK: metis-5.0
 
 jobs:
   builds-JIT-tests:
@@ -66,14 +67,14 @@ jobs:
     # #########################################################################
     - name: Set readlinks METIS, HYPRE
       run: |
-        echo "METIS_ABS_DIR=$(readlink -f ${{ env.METIS_DIR }})" >> "$GITHUB_ENV"
+        echo "METIS_ABS_DIR=$(readlink -f ${{ env.METIS_LNK }})" >> "$GITHUB_ENV"
         echo "HYPRE_ABS_DIR=$(readlink -f ${{ env.HYPRE_DIR }})" >> "$GITHUB_ENV"
 
     # #########################################################################
     - name: Get readlinks METIS, HYPRE
       run: |
-        echo "METIS_ABS_DIR:${{ env.METIS_ABS_DIR }}"
-        echo "HYPRE_ABS_DIR:${{ env.HYPRE_ABS_DIR }}"
+        echo METIS_ABS_DIR:${{ env.METIS_ABS_DIR }}
+        echo HYPRE_ABS_DIR:${{ env.HYPRE_ABS_DIR }}
 
     # #########################################################################
     # METIS cache & install
@@ -162,8 +163,8 @@ jobs:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
-          HYPRE_DIR=/home/runner/work/okina-jit/okina-jit/hypre-2.29.0/install
-          METIS_DIR=/home/runner/work/okina-jit/okina-jit/metis-5.0
+          METIS_DIR=${{ env.METIS_ABS_DIR }}
+          HYPRE_DIR=${{ env.HYPRE_ABS_DIR }}/install
 
 # MFEM_EXT_LIBS=
 
