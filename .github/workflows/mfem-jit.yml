@@ -58,10 +58,6 @@ jobs:
         brew install openmpi
 
     # #########################################################################
-    - name: Get NPROCESSORS
-      run: getconf _NPROCESSORS_ONLN
-
-    # #########################################################################
     # METIS cache & install
     - name: METIS cache
       id: metis-cache
@@ -90,7 +86,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: hypre-${{ env.HYPRE_VER }}
-        key: ${{ runner.os }}-build-hypre-${{ env.HYPRE_VER }}
+        key: ${{ runner.os }}-hypre-${{ env.HYPRE_VER }}-shared
 
     # HYPRE install through action for MacOS only, which has dynamic_lookup
     - name: HYPRE install (MacOS)
@@ -181,13 +177,13 @@ jobs:
         echo -e "\033[33m--- Compiling ex1\033[m"
         make ex1
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        ./ex1 -pa -no-vis | (head; tail)
+        ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Second run will re-use the caches\033[m"
-        ./ex1 -pa -no-vis | (head; tail)
+        ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         echo -e "\033[33m--- Now using MFEM_JIT_DEBUG environment variable to show all JIT commands\033[m"
-        MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis | (head; tail)
+        MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
 
     # #########################################################################
     # JIT parallel tests
@@ -201,14 +197,14 @@ jobs:
         echo -e "\033[33m--- Compiling ex1p\033[m"
         make ex1p
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
+        mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Second run will re-use the caches\033[m"
-        mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
+        mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         echo -e "\033[33m--- Using MFEM_JIT_DEBUG to see the JIT command\033[m"
-        MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
+        MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing all JIT cache ---\033[m"
         rm libmjit.*
         echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system\033[m"
-        MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
+        MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
