@@ -33,7 +33,7 @@ jobs:
         os: [macos-latest] #ubuntu-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [seq] #par]
+        mpi: [par] #seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -165,12 +165,18 @@ jobs:
       run: |
         echo -e "\033[33m--- Compiling mjit_tests, sedov_tests, tmop_pa_tests\033[m"
         make mjit_tests sedov_tests_cpu sedov_tests_debug tmop_pa_tests_cpu tmop_pa_tests_debug -j3
+        echo -e "\033[33m--- Running sequential JIT tests\033[m"
+        ./mjit_tests
+        echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
         ./sedov_tests_debug --verbose
+        echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
         ./sedov_tests_cpu --verbose
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         ./sedov_tests_cpu --verbose
+        echo -e "\033[33m--- Running tmop tests with the debug device\033[m"
         ./tmop_pa_tests_debug --verbose
+        echo -e "\033[33m--- Running tmop tests with the cpu device, re-using the JIT cache\033[m"
         ./tmop_pa_tests_cpu --verbose
 
     # #########################################################################
@@ -196,11 +202,16 @@ jobs:
       run: |
         echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
         make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
+        echo -e "\033[33m--- Running parallel JIT tests\033[m"
+        ./mjit_tests
+        echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
         mpirun -np 3 ./psedov_tests_debug --verbose
+        echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
         mpirun -np 3 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         mpirun -np 3 ./psedov_tests_cpu --verbose
+        echo -e "\033[33m--- Running tmop tests with the cpu device\033[m"
         mpirun -np 3 ./ptmop_pa_tests_cpu --verbose
 
     # #########################################################################
