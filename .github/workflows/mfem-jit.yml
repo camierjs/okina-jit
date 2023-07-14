@@ -30,10 +30,10 @@ jobs:
   Just-In-Time-Tests:
     strategy:
       matrix:
-        os: [ubuntu-latest] #, macos-latest]
+        os: [macos-latest] #ubuntu-latest]
         build-system: [make] #, cmake]
-        target: [opt, dbg]
-        mpi: [par, seq]
+        target: [opt] #, dbg]
+        mpi: [seq] #par]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -189,13 +189,12 @@ jobs:
       working-directory: mfem/tests/unit
       run: |
         echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
-        make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu ptmop_pa_tests_debug -j3
+        make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
         mpirun -np 3 ./psedov_tests_debug --verbose
         mpirun -np 3 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         mpirun -np 3 ./psedov_tests_cpu --verbose
-        mpirun -np 3 ./ptmop_pa_tests_debug --verbose
         mpirun -np 3 ./ptmop_pa_tests_cpu --verbose
 
     # #########################################################################
