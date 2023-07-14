@@ -33,7 +33,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [par, seq]
+        mpi: [par] #, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -125,13 +125,22 @@ jobs:
       shell: bash
 
     # #########################################################################
-    - name: METIS, HYPRE install directory
+    - name: METIS, HYPRE install directory (par)
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
         echo METIS_DIR:${{ env.METIS_DIR }}
         echo HYPRE_DIR:${{ env.HYPRE_DIR }}
-        echo "METIS_DIR_OPT=HYPRE_DIR=METIS_DIR=${{ env.METIS_DIR }}" >> "$GITHUB_ENV"
+        echo "METIS_DIR_OPT=METIS_DIR=${{ env.METIS_DIR }}" >> "$GITHUB_ENV"
         echo "HYPRE_DIR_OPT=HYPRE_DIR=${{ env.HYPRE_DIR }}/install" >> "$GITHUB_ENV"
+
+    # #########################################################################
+    - name: METIS, HYPRE install directory (seq)
+      if: matrix.build-system == 'make' && matrix.mpi == 'seq'
+      run: |
+        echo METIS_DIR:${{ env.METIS_DIR }}
+        echo HYPRE_DIR:${{ env.HYPRE_DIR }}
+        echo "METIS_DIR_OPT=unused" >> "$GITHUB_ENV"
+        echo "HYPRE_DIR_OPT=unused" >> "$GITHUB_ENV"
 
     # #########################################################################
     # MFEM checkout
