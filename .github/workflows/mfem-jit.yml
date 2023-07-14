@@ -86,7 +86,7 @@ jobs:
         key: ${{ runner.os }}-hypre-${{ env.HYPRE_VER }}-shared
 
     - name: HYPRE install
-      if: matrix.mpi == 'par' && stegps.hypre-cache.outputs.cache-hit != 'true'
+      if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true'
       run: |
         wget --no-verbose https://github.com/hypre-space/hypre/archive/v${{env.HYPRE_VER}}.tar.gz
         rm -rf hypre-${{env.HYPRE_VER}}
@@ -115,6 +115,7 @@ jobs:
         echo "HYPRE_DIR=unused" >> "$GITHUB_ENV"
 
     # #########################################################################
+    # MFEM debug and gcc on ubuntu warns about multiple maybe-uninitialized variables
     - name: MFEM Checkout
       uses: actions/checkout@v3
       with:
