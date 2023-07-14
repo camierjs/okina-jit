@@ -97,7 +97,7 @@ jobs:
         key: ${{ runner.os }}-build-${{ env.HYPRE_DIR }}
 
     # HYPRE install through action for MacOS only, which has dynamic_lookup
-    - name: HYPRE install
+    - name: HYPRE install (MacOS)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'macos-latest'
       uses: mfem/github-actions/build-hypre@v2.4
       with:

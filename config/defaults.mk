@@ -222,7 +222,7 @@ HYPRE_DIR = @MFEM_DIR@/../hypre/src/hypre
 HYPRE_OPT = -I$(HYPRE_DIR)/include
 HYPRE_LIB = -L$(HYPRE_DIR)/lib -lHYPRE
 ifeq (YES,$(SHARED))
-	HYPRE_LIB += $(XLINKER)-rpath,$(abspath $(HYPRE_DIR))/lib
+	HYPRE_LIB += $(XLINKER)-rpath,$(realpath $(HYPRE_DIR))/lib
 endif
 ifeq (YES,$(MFEM_USE_CUDA))
    # This is only necessary when hypre is built with cuda:
@@ -256,7 +256,7 @@ else
    MFEM_USE_METIS_5 = YES
 endif
 ifeq (YES,$(SHARED))
-	METIS_LIB += $(XLINKER)-rpath,$(abspath $(METIS_DIR))/lib
+	METIS_LIB += $(XLINKER)-rpath,$(realpath $(METIS_DIR))/lib
 endif
 
 # LAPACK library configuration
