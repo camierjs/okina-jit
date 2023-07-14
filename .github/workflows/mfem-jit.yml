@@ -9,7 +9,7 @@
 # terms of the BSD-3 license. We welcome feedback and contributions, see file
 # CONTRIBUTING.md for details.
 
-name: "JIT"
+name: "Just-In-Time Tests"
 
 permissions:
   actions: write
@@ -23,11 +23,8 @@ on:
   workflow_dispatch:
 
 env:
-  HYPRE_TGZ: v2.29.0.tar.gz
-  HYPRE_DIR: hypre-2.29.0
-  METIS_TGZ: metis-5.1.0.tar.gz
-  METIS_DIR: metis-5.1.0
-  METIS_LNK: metis-5.0
+  HYPRE_VER: 2.29.0
+  METIS_VER: 5.1.0
 
 jobs:
   MFEM-JIT-Tests:
@@ -65,35 +62,25 @@ jobs:
       run: getconf _NPROCESSORS_ONLN
 
     # #########################################################################
-    - name: Set readlinks METIS, HYPRE
-      run: |
-        echo "METIS_ABS_LNK=$(readlink -f ${{ env.METIS_LNK }})" >> "$GITHUB_ENV"
-        echo "HYPRE_ABS_DIR=$(readlink -f ${{ env.HYPRE_DIR }})" >> "$GITHUB_ENV"
-
-    # #########################################################################
-    - name: Get readlinks METIS, HYPRE
-      run: |
-        echo METIS_ABS_LNK:${{ env.METIS_ABS_LNK }}
-        echo HYPRE_ABS_DIR:${{ env.HYPRE_ABS_DIR }}
-
-    # #########################################################################
     # METIS cache & install
     - name: METIS cache
       id: metis-cache
       if: matrix.mpi == 'par'
       uses: actions/cache@v3
       with:
-        path: ${{ env.METIS_LNK }}
-        key: ${{ runner.os }}-build-${{ env.METIS_LNK }}
+        path: metis-5.0
+        key: ${{ runner.os }}-metis-5.0-shared
 
     - name: METIS install
       if: matrix.mpi == 'par' && steps.metis-cache.outputs.cache-hit != 'true'
       run: |
-        wget --no-verbose https://mfem.github.io/tpls/${{ env.METIS_TGZ }}
-        rm -rf ${{ env.METIS_DIR }}
-        tar -xzf ${{ env.METIS_TGZ }}
-        cd ${{ env.METIS_DIR }}
-        make config shared=1 prefix=${{ env.METIS_ABS_LNK }}
+        wget --no-verbose https://mfem.github.io/tpls/metis-${{ env.METIS_VER }}.tar.gz
+        rm -rf metis-${{ env.METIS_VER }}
+        tar -xzf metis-${{ env.METIS_VER }}.tar.gz
+        install="$(pwd)/metis-5.0"
+        echo "METIS_DIR=${install}" >> "$GITHUB_ENV"
+        cd metis-${{ env.METIS_VER }}
+        make config shared=1 prefix=${install}
         make install -j3
       shell: bash
 
@@ -104,37 +91,44 @@ jobs:
       if: matrix.mpi == 'par'
       uses: actions/cache@v3
       with:
-        path: ${{ env.HYPRE_DIR }}
-        key: ${{ runner.os }}-build-${{ env.HYPRE_DIR }}
+        path: hypre-${{ env.HYPRE_VER }}-shared
+        key: ${{ runner.os }}-build-hypre-${{ env.HYPRE_VER }}
 
     # HYPRE install through action for MacOS only, which has dynamic_lookup
     - name: HYPRE install (MacOS)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'macos-latest'
       uses: mfem/github-actions/build-hypre@v2.4
       with:
-        archive: ${{ env.HYPRE_TGZ }}
-        dir: ${{ env.HYPRE_DIR }}
+        archive: v${{ env.HYPRE_VER }}.tar.gz
+        dir: hypre-${{ env.HYPRE_VER }}
         build-system: make
 
     # HYPRE install with shared build enabled for Linux
     - name: HYPRE download (Linux)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest'
       run: |
-        wget --no-verbose https://github.com/hypre-space/hypre/archive/${{ env.HYPRE_TGZ }}
-        rm -rf ${{ env.HYPRE_DIR }}
-        tar -xzf ${{ env.HYPRE_TGZ }}
+        wget --no-verbose https://github.com/hypre-space/hypre/archive/v${{ env.HYPRE_VER }}.tar.gz
+        rm -rf hypre-${{ env.HYPRE_VER }}
+        tar -xzf v${{ env.HYPRE_VER }}.tar.gz
       shell: bash
 
     - name: HYPRE install (Linux, make)
       if: matrix.mpi == 'par' && steps.hypre-cache.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-latest' && matrix.build-system == 'make'
       run: |
-        cd ${{ env.HYPRE_DIR }}
-        install_prefix="$(pwd)/install"
+        cd hypre-${{ env.HYPRE_VER }}
+        install="$(pwd)/install"
+        echo "HYPRE_DIR=$(pwd)" >> "$GITHUB_ENV"
         cd src
-        ./configure --prefix=${install_prefix} --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
+        ./configure --prefix=${install} --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
         make -j3
         make install
       shell: bash
+
+    # #########################################################################
+    - name: METIS, HYPRE install directory
+      run: |
+        echo METIS_DIR:${{ env.METIS_DIR }}
+        echo HYPRE_DIR:${{ env.HYPRE_DIR }}
 
     # #########################################################################
     # MFEM checkout
@@ -152,7 +146,7 @@ jobs:
         target: ${{ matrix.target }}
         mpi: ${{ matrix.mpi }}
         build-system: ${{ matrix.build-system }}
-        hypre-dir: ${{ env.METIS_ABS_LNK }}
+        hypre-dir: ${{ env.HYPRE_DIR }}
         metis-dir: ${{ env.METIS_DIR }}
         mfem-dir: mfem
         library-only: true
@@ -160,8 +154,8 @@ jobs:
           MFEM_USE_JIT=YES
           MFEM_USE_METIS_5=YES
           CXXFLAGS="-O1 -std=c++11"
-          METIS_DIR=${{ env.METIS_ABS_LNK }}
-          HYPRE_DIR=${{ env.HYPRE_ABS_DIR }}/install
+          METIS_DIR=${{ env.METIS_DIR }}
+          HYPRE_DIR=${{ env.HYPRE_DIR }}/install
 
     - name: MFEM info (Make)
       if: matrix.build-system == 'make'
@@ -183,15 +177,15 @@ jobs:
       # 3. remove the JIT shared lib, but keep the archive
       # 4. will re-build the shared from archive
       run: |
-        echo -e "\033[33m--- Compiling ex1 ---\033[m"
+        echo -e "\033[33m--- Compiling ex1\033[m"
         make ex1
-        echo -e "\033[33m--- First run will create the JIT cache: archive + shared ---\033[m"
+        echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
         ./ex1 -pa -no-vis
-        echo -e "\033[33m--- Second run will re-use the caches ---\033[m"
+        echo -e "\033[33m--- Second run will re-use the caches\033[m"
         ./ex1 -pa -no-vis
-        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one ---\033[m"
+        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
-        echo -e "\033[33m--- Now using MFEM_JIT_DEBUG environment variable to show all JIT commands ---\033[m"
+        echo -e "\033[33m--- Now using MFEM_JIT_DEBUG environment variable to show all JIT commands\033[m"
         MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis
 
     # #########################################################################
@@ -205,15 +199,15 @@ jobs:
       run: |
         echo -e "\033[33m--- Compiling ex1p ---\033[m"
         make ex1p
-        echo -e "\033[33m--- First run will create the JIT cache: archive + shared ---\033[m"
+        echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
         mpirun -np 3 ./ex1p -pa -no-vis
-        echo -e "\033[33m--- Second run will re-use the caches ---\033[m"
+        echo -e "\033[33m--- Second run will re-use the caches\033[m"
         mpirun -np 3 ./ex1p -pa -no-vis
-        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one ---\033[m"
+        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
-        echo -e "\033[33m--- Using MFEM_JIT_DEBUG to see the JIT command ---\033[m"
+        echo -e "\033[33m--- Using MFEM_JIT_DEBUG to see the JIT command\033[m"
         MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis
         echo -e "\033[33m--- Removing all JIT cache ---\033[m"
         rm libmjit.*
-        echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system ---\033[m"
+        echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system\033[m"
         MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis
