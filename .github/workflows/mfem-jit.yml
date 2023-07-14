@@ -203,7 +203,7 @@ jobs:
         echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
         make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
         echo -e "\033[33m--- Running parallel JIT tests\033[m"
-        ./mjit_tests
+        ./pmjit_tests
         echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
         mpirun -np 3 ./psedov_tests_debug --verbose
         echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
