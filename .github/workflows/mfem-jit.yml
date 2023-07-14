@@ -33,7 +33,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [make] #, cmake]
         target: [opt] #, dbg]
-        mpi: [par] #, seq]
+        mpi: [par, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -128,8 +128,6 @@ jobs:
     - name: METIS, HYPRE install directory (par)
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
-        echo METIS_DIR:${{ env.METIS_DIR }}
-        echo HYPRE_DIR:${{ env.HYPRE_DIR }}
         echo "METIS_DIR_OPT=METIS_DIR=${{ env.METIS_DIR }}" >> "$GITHUB_ENV"
         echo "HYPRE_DIR_OPT=HYPRE_DIR=${{ env.HYPRE_DIR }}/install" >> "$GITHUB_ENV"
 
@@ -137,10 +135,8 @@ jobs:
     - name: METIS, HYPRE install directory (seq)
       if: matrix.build-system == 'make' && matrix.mpi == 'seq'
       run: |
-        echo METIS_DIR:${{ env.METIS_DIR }}
-        echo HYPRE_DIR:${{ env.HYPRE_DIR }}
-        echo "METIS_DIR_OPT=unused" >> "$GITHUB_ENV"
-        echo "HYPRE_DIR_OPT=unused" >> "$GITHUB_ENV"
+        echo "METIS_DIR=unused" >> "$GITHUB_ENV"
+        echo "HYPRE_DIR=unused" >> "$GITHUB_ENV"
 
     # #########################################################################
     # MFEM checkout
@@ -151,7 +147,7 @@ jobs:
 
     # Make MFEM config and build
     - name: MFEM config and build (Make)
-      if: matrix.build-system == 'make' # && matrix.mpi == 'par'
+      if: matrix.build-system == 'make'
       uses: mfem/github-actions/build-mfem@v2.4
       with:
         os: ${{ matrix.os }}
@@ -192,13 +188,13 @@ jobs:
         echo -e "\033[33m--- Compiling ex1\033[m"
         make ex1
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        ./ex1 -pa -no-vis
+        ./ex1 -pa -no-vis | (head; tail)
         echo -e "\033[33m--- Second run will re-use the caches\033[m"
-        ./ex1 -pa -no-vis
+        ./ex1 -pa -no-vis | (head; tail)
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         echo -e "\033[33m--- Now using MFEM_JIT_DEBUG environment variable to show all JIT commands\033[m"
-        MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis
+        MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis | (head; tail)
 
     # #########################################################################
     # JIT parallel tests
@@ -209,17 +205,17 @@ jobs:
       working-directory: mfem/examples
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
-        echo -e "\033[33m--- Compiling ex1p ---\033[m"
+        echo -e "\033[33m--- Compiling ex1p\033[m"
         make ex1p
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        mpirun -np 3 ./ex1p -pa -no-vis
+        mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
         echo -e "\033[33m--- Second run will re-use the caches\033[m"
-        mpirun -np 3 ./ex1p -pa -no-vis
+        mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         echo -e "\033[33m--- Using MFEM_JIT_DEBUG to see the JIT command\033[m"
-        MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis
+        MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
         echo -e "\033[33m--- Removing all JIT cache ---\033[m"
         rm libmjit.*
         echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system\033[m"
-        MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis
+        MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis | (head; tail)
