@@ -73,7 +73,7 @@ jobs:
         tar -xzf metis-${{ env.METIS_VER }}.tar.gz
         install="$(pwd)/metis-5.0"
         cd metis-${{ env.METIS_VER }}
-        make config shared=1 prefix=${install}
+        make config shared=1 prefix=${install} cc=mpicc
         make install -j3
 
     # #########################################################################
