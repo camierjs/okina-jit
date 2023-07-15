@@ -187,12 +187,13 @@ jobs:
       run: env | grep BUILD_DIR
 
     # #########################################################################
+    # unit_tests is needed to trigger copy_data which is a dependencies (set where?)
     - name: MFEM JIT sequential unit tests
       if: matrix.mpi == 'seq'
       working-directory: mfem/${{env.BUILD_DIR}}/tests/unit
       run: |
         echo -e "\033[33m--- Compiling mjit_tests, sedov_tests, tmop_pa_tests\033[m"
-        make mjit_tests sedov_tests_cpu sedov_tests_debug tmop_pa_tests_cpu tmop_pa_tests_debug -j3
+        make unit_tests mjit_tests sedov_tests_cpu sedov_tests_debug tmop_pa_tests_cpu tmop_pa_tests_debug -j3
         echo -e "\033[33m--- Running sequential JIT tests\033[m"
         ./mjit_tests
         echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
@@ -209,8 +210,8 @@ jobs:
 
     # #########################################################################
     - name: MFEM JIT sequential examples tests
-      if: matrix.build-system == 'make' && matrix.mpi == 'seq'
-      working-directory: mfem/examples
+      if: matrix.mpi == 'seq'
+      working-directory: mfem/${{env.BUILD_DIR}}/examples
       run: |
         echo -e "\033[33m--- Compiling ex1\033[m"
         make ex1
@@ -225,8 +226,8 @@ jobs:
 
     # #########################################################################
     - name: MFEM JIT parallel examples tests
-      working-directory: mfem/examples
-      if: matrix.build-system == 'make' && matrix.mpi == 'par'
+      working-directory: mfem/${{env.BUILD_DIR}}/examples
+      if: matrix.mpi == 'par'
       run: |
         echo -e "\033[33m--- Compiling ex1p\033[m"
         make ex1p
@@ -245,11 +246,11 @@ jobs:
 
     # #########################################################################
     - name: MFEM JIT parallel unit tests
-      if: matrix.build-system == 'make' && matrix.mpi == 'par'
-      working-directory: mfem/tests/unit
+      if: matrix.mpi == 'par'
+      working-directory: mfem/${{env.BUILD_DIR}}/tests/unit
       run: |
         echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
-        make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
+        make unit_tests pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
         echo -e "\033[33m--- Running parallel JIT tests\033[m"
         ${{env.DYLD}} mpirun -np 3 ./pmjit_tests
         echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
