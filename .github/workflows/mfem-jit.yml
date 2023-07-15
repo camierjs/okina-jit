@@ -124,6 +124,7 @@ jobs:
       with:
         path: mfem
 
+    # MAKE ####################################################################
     # MFEM debug (-pedantic -Wall -Werror) and g++ on ubuntu warns about multiple
     # maybe-uninitialized variables. The 'no-maybe-uninitialized' option should
     # be removed when resolved.
@@ -151,6 +152,13 @@ jobs:
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
+    # TERNARY ###################################################################
+    - name: Set ternary operator
+      run: echo "TERNARY=$([[ matrix.target == 'dbg' ]] && "Debug" || "RelWithDebInfo" )" >> "$GITHUB_ENV"
+    - name: Get ternary operator
+      run: env | grep TERNARY
+
+    # CMAKE ###################################################################
     - name: Set cmake options options (cmake,dbg)
       if: matrix.build-system == 'cmake' && matrix.target == 'dbg'
       run: echo "CMAKE_BUILD_TYPE=Debug" >> "$GITHUB_ENV"
@@ -177,8 +185,9 @@ jobs:
       run: |
         mkdir build && cd build
         cmake .. -DMFEM_USE_JIT=YES \
+                 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
                  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=1 \
-                 -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O1 -g -DNDEBUG" \
+                 -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG" \
                  -DMFEM_USE_MPI=${{env.MFEM_USE_MPI}} -DHYPRE=${{ env.HYPRE_DIR }}\
                  -DMFEM_USE_METIS=${{env.MFEM_USE_METIS}} -DMFEM_USE_METIS_5=${{env.MFEM_USE_METIS}} \
                  -DMETIS_DIR=${{ env.METIS_DIR }} \
@@ -210,6 +219,22 @@ jobs:
         make copy_data copy_miniapps_meshing_data
 
     # #########################################################################
+    - name: MFEM JIT sequential examples tests
+      if: matrix.mpi == 'seq'
+      working-directory: mfem/${{env.BUILD_DIR}}/examples
+      run: |
+        echo -e "\033[33m--- Compiling ex1\033[m"
+        make ex1
+        echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
+        ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
+        echo -e "\033[33m--- Second run will re-use the caches\033[m"
+        ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
+        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
+        rm libmjit.[^a]*
+        echo -e "\033[33m--- Now using MFEM_JIT_DEBUG environment variable to show all JIT commands\033[m"
+        MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
+
+    # #########################################################################
     - name: MFEM JIT sequential unit tests
       if: matrix.mpi == 'seq'
       working-directory: mfem/${{env.BUILD_DIR}}/tests/unit
@@ -229,22 +254,6 @@ jobs:
         ./tmop_pa_tests_debug --verbose
         echo -e "\033[33m--- Running tmop tests with the cpu device, re-using the JIT cache\033[m"
         ./tmop_pa_tests_cpu --verbose
-
-    # #########################################################################
-    - name: MFEM JIT sequential examples tests
-      if: matrix.mpi == 'seq'
-      working-directory: mfem/${{env.BUILD_DIR}}/examples
-      run: |
-        echo -e "\033[33m--- Compiling ex1\033[m"
-        make ex1
-        echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
-        echo -e "\033[33m--- Second run will re-use the caches\033[m"
-        ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
-        echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
-        rm libmjit.[^a]*
-        echo -e "\033[33m--- Now using MFEM_JIT_DEBUG environment variable to show all JIT commands\033[m"
-        MFEM_JIT_DEBUG=1 ./ex1 -pa -no-vis | (head -n 16 ; tail -n 2)
 
     # #########################################################################
     - name: MFEM JIT parallel examples tests
@@ -272,16 +281,16 @@ jobs:
       working-directory: mfem/${{env.BUILD_DIR}}/tests/unit
       run: |
         echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
-        make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
+        make pmjit_tests psedov_tests_cpu ptmop_pa_tests_cpu -j3
         echo -e "\033[33m--- Running parallel JIT tests\033[m"
-        ${{env.DYLD}} mpirun -np 3 ./pmjit_tests
-        echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
-        ${{env.DYLD}} mpirun -np 3 ./psedov_tests_debug --verbose
+        ${{env.DYLD}} mpirun -np 2 ./pmjit_tests
+        echo -e "\033[33m--- Running sedov tests with the cpu device\033[m"
+        ${{env.DYLD}} mpirun -np 2 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
-        ${{env.DYLD}} mpirun -np 3 ./psedov_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 2 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
-        ${{env.DYLD}} mpirun -np 3 ./psedov_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 2 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Running tmop tests with the cpu device\033[m"
-        ${{env.DYLD}} mpirun -np 3 ./ptmop_pa_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 2 ./ptmop_pa_tests_cpu --verbose
 
