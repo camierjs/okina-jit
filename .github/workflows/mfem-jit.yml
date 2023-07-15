@@ -156,10 +156,10 @@ jobs:
       working-directory: mfem
       run: |
         mkdir build && cd build
-        cmake .. -DMFEM_USE_JIT=YES
-                 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=1
-                 -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O1 -g -DNDEBUG"
-                 -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO
+        cmake .. -DMFEM_USE_JIT=YES \
+                 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=1 \
+                 -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O1 -g -DNDEBUG" \
+                 -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO \
                  -DCMAKE_INSTALL_PREFIX=install -DCMAKE_INSTALL_MESSAGE=LAZY
 
     - name: MFEM info (make)
