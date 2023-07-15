@@ -152,32 +152,18 @@ jobs:
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
-    # TERNARY ###################################################################
-    - name: Set ternary operator
-      run: echo TERNARY=$([[ "matrix.target" == "dbg" ]] && echo "Debug" || echo "RelWithDebInfo" ) >> "$GITHUB_ENV"
-    - name: Get ternary operator
-      run: env | grep TERNARY
-
     # CMAKE ###################################################################
-    - name: Set cmake options options (cmake,dbg)
-      if: matrix.build-system == 'cmake' && matrix.target == 'dbg'
-      run: echo "CMAKE_BUILD_TYPE=Debug" >> "$GITHUB_ENV"
-
-    - name: Set cmake options options (cmake,opt)
-      if: matrix.build-system == 'cmake' && matrix.target == 'opt'
-      run: echo "CMAKE_BUILD_TYPE=RelWithDebInfo" >> "$GITHUB_ENV"
-
-    - name: Set cmake options options (cmake,seq)
-      if: matrix.build-system == 'cmake' && matrix.mpi == 'seq'
+    - name: Set cmake options options (cmake)
+      if: matrix.build-system == 'cmake'
       run: |
-        echo "MFEM_USE_MPI=NO" >> "$GITHUB_ENV"
-        echo "MFEM_USE_METIS=NO" >> "$GITHUB_ENV"
+        echo CMAKE_BUILD_TYPE=$([[ "matrix.target" == "dbg" ]] && echo "Debug" || echo "RelWithDebInfo") >> "$GITHUB_ENV"
 
-    - name: Set cmake options options (cmake,par)
-      if: matrix.build-system == 'cmake' && matrix.mpi == 'par'
+    - name: Set cmake options options (cmake)
+      if: matrix.build-system == 'cmake'
       run: |
-        echo "MFEM_USE_MPI=YES" >> "$GITHUB_ENV"
-        echo "MFEM_USE_METIS=YES" >> "$GITHUB_ENV"
+        ysno = $([[ "matrix.mpi" == "par" ]] && echo "YES" || echo "NO")
+        echo "MFEM_USE_MPI=${ysno}" >> "$GITHUB_ENV"
+        echo "MFEM_USE_METIS=${ysno}" >> "$GITHUB_ENV"
 
     - name: MFEM config and build (cmake)
       if: matrix.build-system == 'cmake'
@@ -186,7 +172,7 @@ jobs:
         mkdir build && cd build
         cmake .. -DMFEM_USE_JIT=YES \
                  -DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 \
-                 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=1 \
+                 -DCMAKE_BUILD_TYPE=${{env.CMAKE_BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=1 \
                  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG" \
                  -DMFEM_USE_MPI=${{env.MFEM_USE_MPI}} -DHYPRE=${{ env.HYPRE_DIR }}\
                  -DMFEM_USE_METIS=${{env.MFEM_USE_METIS}} -DMFEM_USE_METIS_5=${{env.MFEM_USE_METIS}} \
