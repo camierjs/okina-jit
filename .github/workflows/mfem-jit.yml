@@ -110,7 +110,7 @@ jobs:
         echo "METIS_DIR_OPT=METIS_DIR=${metis_dir}" >> "$GITHUB_ENV"
         echo "HYPRE_DIR_OPT=HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
         echo "LD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
-        echo "DYLD_LIBRARY_SET=DYLD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
+        echo "export DYLD_LIBRARY_SET=DYLD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
 
     - name: Set METIS_DIR and HYPRE_DIR (seq)
       if: matrix.build-system == 'make' && matrix.mpi == 'seq'
