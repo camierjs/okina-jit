@@ -131,7 +131,7 @@ jobs:
     # MFEM debug (-pedantic -Wall -Werror) and g++ on ubuntu warns about multiple
     # maybe-uninitialized variables.
     # The 'no-maybe-uninitialized' option should be removed when resolved.
-    - name: Set extra compiler options (make, Linux)
+    - name: Set make options (make, Linux)
       if: matrix.build-system == 'make' && matrix.os == 'ubuntu-latest'
       run: echo "CXXFLAGS_OPT=-Wno-maybe-uninitialized" >> "$GITHUB_ENV"
 
@@ -154,19 +154,12 @@ jobs:
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
-    - name: MFEM info (make)
+    - name: MFEM info, install & set BUILD_DIR (make)
       if: matrix.build-system == 'make'
       working-directory: mfem
-      run: make info
-
-    - name: MFEM install (make)
-      if: matrix.build-system == 'make'
-      working-directory: mfem
-      run: make install
-
-    - name: Set BUILD_DIR (make)
-      if: matrix.build-system == 'make'
       run: |
+        make info
+        make install
         echo "BUILD_DIR=." >> "$GITHUB_ENV"
 
     # MFEM CMAKE ##############################################################
