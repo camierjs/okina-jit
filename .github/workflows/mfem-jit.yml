@@ -164,6 +164,9 @@ jobs:
         echo "MFEM_USE_MPI=$([[ "matrix.mpi" == "par" ]] && echo "YES" || echo "NO")" >> "$GITHUB_ENV"
         echo "MFEM_USE_METIS=$([[ "matrix.mpi" == "par" ]] && echo "YES" || echo "NO")" >> "$GITHUB_ENV"
 
+    - name: env
+      run: env
+
     - name: MFEM config and build (cmake)
       if: matrix.build-system == 'cmake'
       working-directory: mfem
@@ -173,7 +176,7 @@ jobs:
                  -DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 \
                  -DCMAKE_BUILD_TYPE=${{env.CMAKE_BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=1 \
                  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG" \
-                 -DMFEM_USE_MPI=${{env.MFEM_USE_MPI}} -DHYPRE=${{ env.HYPRE_DIR }}\
+                 -DMFEM_USE_MPI=${{env.MFEM_USE_MPI}} -DHYPRE_DIR=${{ env.HYPRE_DIR }}\
                  -DMFEM_USE_METIS=${{env.MFEM_USE_METIS}} -DMFEM_USE_METIS_5=${{env.MFEM_USE_METIS}} \
                  -DMETIS_DIR=${{ env.METIS_DIR }} \
                  -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO \
