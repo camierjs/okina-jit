@@ -30,10 +30,10 @@ jobs:
   Just-In-Time-Tests:
     strategy:
       matrix:
-        os: [ubuntu-latest] #, macos-latest]
+        os: [macos-latest] #, ubuntu-latest]
         build-system: [cmake] #, make]
-        target: [opt] #, dbg]
-        mpi: [par, seq]
+        target: [dbg, opt]
+        mpi: [seq] #, par]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
