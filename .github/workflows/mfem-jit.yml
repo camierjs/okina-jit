@@ -33,7 +33,7 @@ jobs:
         os: [ubuntu-latest] #, macos-latest]
         build-system: [cmake] #, make]
         target: [opt] #, dbg]
-        mpi: [par] #, seq]
+        mpi: [par, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
@@ -151,28 +151,37 @@ jobs:
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
-    - name: MFEM config and build (seq, cmake)
-      if: matrix.build-system == 'cmake' && matrix.mpi == 'seq'
-      working-directory: mfem
-      run: |
-        mkdir build && cd build
-        cmake .. -DMFEM_USE_JIT=YES \
-                 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=1 \
-                 -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O1 -g -DNDEBUG" \
-                 -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO \
-                 -DCMAKE_INSTALL_PREFIX=install -DCMAKE_INSTALL_MESSAGE=LAZY
-        make install -j3
+    - name: Set cmake options options (cmake,dbg)
+      if: matrix.build-system == 'cmake' && matrix.target == 'dbg'
+      run: echo "CMAKE_BUILD_TYPE=Debug" >> "$GITHUB_ENV"
 
-    - name: MFEM config and build (par, cmake)
+    - name: Set cmake options options (cmake,opt)
+      if: matrix.build-system == 'cmake' && matrix.target == 'opt'
+      run: echo "CMAKE_BUILD_TYPE=RelWithDebInfo" >> "$GITHUB_ENV"
+
+    - name: Set cmake options options (cmake,seq)
+      if: matrix.build-system == 'cmake' && matrix.mpi == 'seq'
+      run: |
+        echo "MFEM_USE_MPI=NO" >> "$GITHUB_ENV"
+        echo "MFEM_USE_METIS=NO" >> "$GITHUB_ENV"
+
+    - name: Set cmake options options (cmake,par)
       if: matrix.build-system == 'cmake' && matrix.mpi == 'par'
+      run: |
+        echo "MFEM_USE_MPI=YES" >> "$GITHUB_ENV"
+        echo "MFEM_USE_METIS=YES" >> "$GITHUB_ENV"
+
+    - name: MFEM config and build (cmake)
+      if: matrix.build-system == 'cmake'
       working-directory: mfem
       run: |
         mkdir build && cd build
         cmake .. -DMFEM_USE_JIT=YES \
                  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=1 \
                  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O1 -g -DNDEBUG" \
-                 -DMFEM_USE_MPI=YES -DHYPRE=${{ env.HYPRE_DIR }}\
-                 -DMFEM_USE_METIS=YES -DMFEM_USE_METIS_5=YES -DMETIS_DIR=${{ env.METIS_DIR }} \
+                 -DMFEM_USE_MPI=${{env.MFEM_USE_MPI}} -DHYPRE=${{ env.HYPRE_DIR }}\
+                 -DMFEM_USE_METIS=${{env.MFEM_USE_METIS}} -DMFEM_USE_METIS_5=${{env.MFEM_USE_METIS}} \
+                 -DMETIS_DIR=${{ env.METIS_DIR }} \
                  -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO \
                  -DCMAKE_INSTALL_PREFIX=install -DCMAKE_INSTALL_MESSAGE=LAZY
         make install -j3
