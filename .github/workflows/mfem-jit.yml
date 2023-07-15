@@ -46,10 +46,6 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
-    # NPROCESSORS #############################################################
-    - name: Get NPROCESSORS
-      run: echo NPROC=$(getconf _NPROCESSORS_ONLN) >> "$GITHUB_ENV"
-
     # MPI #####################################################################
     - name: MPI install (Linux)
       if: matrix.mpi == 'par' && matrix.os == 'ubuntu-latest'
@@ -77,7 +73,7 @@ jobs:
         install="$(pwd)/metis-5.0"
         cd metis-${{ env.METIS_VER }}
         make config shared=1 prefix=${install} cc=mpicc
-        make install -j${{env.NPROC}}
+        make install -j3
 
     # HYPRE ###################################################################
     - name: HYPRE cache
@@ -97,7 +93,7 @@ jobs:
         install="$(pwd)/hypre-${{ env.HYPRE_VER }}/install"
         cd hypre-${{env.HYPRE_VER}}/src
         ./configure --prefix=${install} --disable-fortran --enable-shared CC=mpicc CFLAGS=-O1 CXX=mpic++
-        make install -j${{env.NPROC}}
+        make install -j3
 
     # On MacOS, any dynamic linker (dyld) environment variables such as
     # DYLD_LIBRARY_PATH are purged when launching protected processes.
@@ -184,7 +180,7 @@ jobs:
                  -DMETIS_DIR=${{env.METIS_DIR}} \
                  -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO \
                  -DCMAKE_INSTALL_PREFIX=install -DCMAKE_INSTALL_MESSAGE=LAZY
-        make install -j${{env.NPROC}}
+        make install -j3
         make copy_data copy_miniapps_meshing_data
 
     # SEQ EX1 #################################################################
@@ -232,17 +228,17 @@ jobs:
         echo -e "\033[33m--- Compiling ex1p\033[m"
         make ex1p
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        ${{env.DYLD}} mpirun -np ${{env.NPROC}} ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Second run will re-use the caches\033[m"
-        ${{env.DYLD}} mpirun -np ${{env.NPROC}} ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         echo -e "\033[33m--- Using MFEM_JIT_DEBUG to see the JIT command\033[m"
-        ${{env.DYLD}} MFEM_JIT_DEBUG=1 mpirun -np ${{env.NPROC}} ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing all JIT cache ---\033[m"
         rm libmjit.*
         echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system\033[m"
-        ${{env.DYLD}} MFEM_JIT_FORK=1 mpirun -np ${{env.NPROC}} ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
 
     # PAR UNIT, SEDOV & TMOP ##################################################
     - name: MFEM JIT parallel unit tests
@@ -252,14 +248,14 @@ jobs:
         echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
         make pmjit_tests psedov_tests_cpu ptmop_pa_tests_cpu -j3
         echo -e "\033[33m--- Running parallel JIT tests\033[m"
-        ${{env.DYLD}} mpirun -np ${{env.NPROC}} ./pmjit_tests
+        ${{env.DYLD}} mpirun -np 2 ./pmjit_tests
         echo -e "\033[33m--- Running sedov tests with the cpu device\033[m"
-        ${{env.DYLD}} mpirun -np ${{env.NPROC}} ./psedov_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 2 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
-        ${{env.DYLD}} mpirun -np ${{env.NPROC}} ./psedov_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 2 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
-        ${{env.DYLD}} mpirun -np ${{env.NPROC}} ./psedov_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 2 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Running tmop tests with the cpu device\033[m"
-        ${{env.DYLD}} mpirun -np ${{env.NPROC}} ./ptmop_pa_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 2 ./ptmop_pa_tests_cpu --verbose
 
