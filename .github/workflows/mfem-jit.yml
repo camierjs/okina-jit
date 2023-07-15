@@ -110,7 +110,7 @@ jobs:
         echo "METIS_DIR_OPT=METIS_DIR=${metis_dir}" >> "$GITHUB_ENV"
         echo "HYPRE_DIR_OPT=HYPRE_DIR=${hypre_dir}" >> "$GITHUB_ENV"
         echo "LD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
-        echo "export DYLD_LIBRARY_SET=DYLD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
+        echo "DYLD=DYLD_LIBRARY_PATH=${metis_dir}/lib:${hypre_dir}/lib" >> "$GITHUB_ENV"
 
     - name: Set METIS_DIR and HYPRE_DIR (seq)
       if: matrix.build-system == 'make' && matrix.mpi == 'seq'
@@ -119,7 +119,6 @@ jobs:
         echo "HYPRE_DIR=unused" >> "$GITHUB_ENV"
 
     # #########################################################################
-
     - name: MFEM Checkout
       uses: actions/checkout@v3
       with:
@@ -204,21 +203,20 @@ jobs:
       working-directory: mfem/examples
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
-        ${{env.DYLD_LIBRARY_SET}}
         echo -e "\033[33m--- Compiling ex1p\033[m"
         make ex1p
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
-        mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Second run will re-use the caches\033[m"
-        mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
         echo -e "\033[33m--- Using MFEM_JIT_DEBUG to see the JIT command\033[m"
-        MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} MFEM_JIT_DEBUG=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
         echo -e "\033[33m--- Removing all JIT cache ---\033[m"
         rm libmjit.*
         echo -e "\033[33m--- Now using MFEM_JIT_FORK environment variable to use a child process for the std::system\033[m"
-        MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
+        ${{env.DYLD}} MFEM_JIT_FORK=1 mpirun -np 3 ./ex1p -pa -no-vis | (head -n 16 ; tail -n 2)
 
     # #########################################################################
     - name: MFEM JIT parallel unit tests
@@ -228,14 +226,14 @@ jobs:
         echo -e "\033[33m--- Compiling pmjit_tests, psedov_tests, ptmop_pa_tests\033[m"
         make pmjit_tests psedov_tests_cpu psedov_tests_debug ptmop_pa_tests_cpu -j3
         echo -e "\033[33m--- Running parallel JIT tests\033[m"
-        mpirun -np 3 ./pmjit_tests
+        ${{env.DYLD}} mpirun -np 3 ./pmjit_tests
         echo -e "\033[33m--- Running sedov tests with the debug device\033[m"
-        mpirun -np 3 ./psedov_tests_debug --verbose
+        ${{env.DYLD}} mpirun -np 3 ./psedov_tests_debug --verbose
         echo -e "\033[33m--- Running sedov tests with the cpu device, re-using the JIT cache\033[m"
-        mpirun -np 3 ./psedov_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 3 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Removing the JIT shared library, but keeping the archive one\033[m"
         rm libmjit.[^a]*
-        mpirun -np 3 ./psedov_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 3 ./psedov_tests_cpu --verbose
         echo -e "\033[33m--- Running tmop tests with the cpu device\033[m"
-        mpirun -np 3 ./ptmop_pa_tests_cpu --verbose
+        ${{env.DYLD}} mpirun -np 3 ./ptmop_pa_tests_cpu --verbose
 
