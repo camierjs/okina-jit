@@ -161,6 +161,7 @@ jobs:
                  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O1 -g -DNDEBUG" \
                  -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO \
                  -DCMAKE_INSTALL_PREFIX=install -DCMAKE_INSTALL_MESSAGE=LAZY
+        make install -j3
 
     - name: MFEM info (make)
       if: matrix.build-system == 'make'
@@ -187,7 +188,7 @@ jobs:
 
     # #########################################################################
     - name: MFEM JIT sequential unit tests
-      if: matrix.build-system == 'make' && matrix.mpi == 'seq'
+      if: matrix.mpi == 'seq'
       working-directory: mfem/${{env.BUILD_DIR}}/tests/unit
       run: |
         echo -e "\033[33m--- Compiling mjit_tests, sedov_tests, tmop_pa_tests\033[m"
