@@ -188,7 +188,7 @@ jobs:
     # #########################################################################
     - name: MFEM JIT sequential unit tests
       if: matrix.build-system == 'make' && matrix.mpi == 'seq'
-      working-directory: mfem/${{BUILD_DIR}}/tests/unit
+      working-directory: mfem/${{env.BUILD_DIR}}/tests/unit
       run: |
         echo -e "\033[33m--- Compiling mjit_tests, sedov_tests, tmop_pa_tests\033[m"
         make mjit_tests sedov_tests_cpu sedov_tests_debug tmop_pa_tests_cpu tmop_pa_tests_debug -j3
