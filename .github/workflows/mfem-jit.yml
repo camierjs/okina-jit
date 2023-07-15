@@ -161,7 +161,7 @@ jobs:
     - name: Set cmake options options (cmake)
       if: matrix.build-system == 'cmake'
       run: |
-        ysno = $([[ "matrix.mpi" == "par" ]] && echo "YES" || echo "NO")
+        ysno = [[ "matrix.mpi" == "par" ]] && echo "YES" || echo "NO"
         echo "MFEM_USE_MPI=${ysno}" >> "$GITHUB_ENV"
         echo "MFEM_USE_METIS=${ysno}" >> "$GITHUB_ENV"
 
