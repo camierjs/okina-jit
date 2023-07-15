@@ -154,7 +154,7 @@ jobs:
 
     # TERNARY ###################################################################
     - name: Set ternary operator
-      run: echo "TERNARY=$([[ matrix.target == 'dbg' ]] && "Debug" || "RelWithDebInfo" )" >> "$GITHUB_ENV"
+      run: echo TERNARY=$([[ "matrix.target" == "dbg" ]] && echo "Debug" || echo "RelWithDebInfo" ) >> "$GITHUB_ENV"
     - name: Get ternary operator
       run: env | grep TERNARY
 
@@ -185,7 +185,7 @@ jobs:
       run: |
         mkdir build && cd build
         cmake .. -DMFEM_USE_JIT=YES \
-                 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+                 -DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 \
                  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=1 \
                  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG" \
                  -DMFEM_USE_MPI=${{env.MFEM_USE_MPI}} -DHYPRE=${{ env.HYPRE_DIR }}\
