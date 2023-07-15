@@ -204,7 +204,7 @@ jobs:
       working-directory: mfem/examples
       if: matrix.build-system == 'make' && matrix.mpi == 'par'
       run: |
-        ${{DYLD_LIBRARY_SET}}
+        ${{env.DYLD_LIBRARY_SET}}
         echo -e "\033[33m--- Compiling ex1p\033[m"
         make ex1p
         echo -e "\033[33m--- First run will create the JIT cache: archive + shared\033[m"
