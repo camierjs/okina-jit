@@ -33,7 +33,7 @@ jobs:
         os: [macos-latest] #, ubuntu-latest]
         build-system: [cmake] #, make]
         target: [dbg, opt]
-        mpi: [seq] #, par]
+        mpi: [par] #, seq]
     name: ${{ matrix.os }}-${{ matrix.build-system }}-JIT-${{ matrix.target }}-${{ matrix.mpi }}
 
     runs-on: ${{ matrix.os }}
