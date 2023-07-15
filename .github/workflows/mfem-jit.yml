@@ -152,20 +152,32 @@ jobs:
           ${{ env.METIS_DIR_OPT }}
           ${{ env.HYPRE_DIR_OPT }}
 
+    - name: MFEM info (make)
+      if: matrix.build-system == 'make'
+      working-directory: mfem
+      run: make info
+
+    - name: MFEM install (make)
+      if: matrix.build-system == 'make'
+      working-directory: mfem
+      run: make install
+
+    - name: Set BUILD_DIR (make)
+      if: matrix.build-system == 'make'
+      run: |
+        echo "BUILD_DIR=." >> "$GITHUB_ENV"
+
     # CMAKE ###################################################################
     - name: Set cmake options options (cmake)
       if: matrix.build-system == 'cmake'
       run: |
-        echo CMAKE_BUILD_TYPE=$([[ "matrix.target" == "dbg" ]] && echo "Debug" || echo "RelWithDebInfo") >> "$GITHUB_ENV"
+        echo CMAKE_BUILD_TYPE=$([[ "${{matrix.target}}" == "dbg" ]] && echo "Debug" || echo "RelWithDebInfo") >> "$GITHUB_ENV"
 
     - name: Set cmake options options (cmake)
       if: matrix.build-system == 'cmake'
       run: |
-        echo "MFEM_USE_MPI=$([[ "matrix.mpi" == "par" ]] && echo "YES" || echo "NO")" >> "$GITHUB_ENV"
-        echo "MFEM_USE_METIS=$([[ "matrix.mpi" == "par" ]] && echo "YES" || echo "NO")" >> "$GITHUB_ENV"
-
-    - name: env
-      run: env
+        echo "MFEM_USE_MPI=$([[ "${{matrix.mpi}}" == "par" ]] && echo "YES" || echo "NO")" >> "$GITHUB_ENV"
+        echo "MFEM_USE_METIS=$([[ "${{matrix.mpi}}" == "par" ]] && echo "YES" || echo "NO")" >> "$GITHUB_ENV"
 
     - name: MFEM config and build (cmake)
       if: matrix.build-system == 'cmake'
@@ -182,21 +194,6 @@ jobs:
                  -DMFEM_ENABLE_TESTING=YES -DMFEM_ENABLE_EXAMPLES=NO -DMFEM_ENABLE_MINIAPPS=NO \
                  -DCMAKE_INSTALL_PREFIX=install -DCMAKE_INSTALL_MESSAGE=LAZY
         make install -j3
-
-    - name: MFEM info (make)
-      if: matrix.build-system == 'make'
-      working-directory: mfem
-      run: make info
-
-    - name: MFEM install (make)
-      if: matrix.build-system == 'make'
-      working-directory: mfem
-      run: make install
-
-    - name: Set BUILD_DIR (make)
-      if: matrix.build-system == 'make'
-      run: |
-        echo "BUILD_DIR=." >> "$GITHUB_ENV"
 
     # ctests need some data files from data and miniapps/meshing
     - name: Set BUILD_DIR and copy data & mesh (cmake)
